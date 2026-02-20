@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "LakerWatch privacy policy — learn how we handle your data. No personal information is collected.",
+};
+
 export default function PrivacyPolicy() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 text-sm leading-relaxed text-muted dark:text-dark-muted">

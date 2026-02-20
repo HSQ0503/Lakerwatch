@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import TodoList from "@/components/TodoList";
+
+export const metadata: Metadata = {
+  title: "To-Do List",
+  description:
+    "Manage your school tasks and assignments with the LakerWatch to-do list for Windermere Prep students.",
+};
 
 export default function TodosPage() {
   return (

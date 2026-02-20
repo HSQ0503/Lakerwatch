@@ -20,8 +20,52 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LakerWatch",
-  description: "School utility dashboard for Windermere Preparatory School",
+  title: {
+    default: "LakerWatch — Windermere Prep Schedule & Period Timer",
+    template: "%s | LakerWatch",
+  },
+  description:
+    "Free period countdown timer, daily schedule, and student dashboard for Windermere Preparatory School (WPS) in Windermere, Orlando, Florida. Track odd/even days, lunch waves, school events, and more.",
+  keywords: [
+    "LakerWatch",
+    "Windermere Preparatory School",
+    "Windermere Prep",
+    "WPS",
+    "school schedule",
+    "period timer",
+    "period countdown",
+    "bell schedule",
+    "odd even day",
+    "student dashboard",
+    "Windermere Florida",
+    "Orlando Florida",
+    "high school schedule",
+    "lunch wave",
+    "school events calendar",
+  ],
+  authors: [{ name: "LakerWatch" }],
+  openGraph: {
+    title: "LakerWatch — Windermere Prep Schedule & Period Timer",
+    description:
+      "Free period countdown timer and student dashboard for Windermere Preparatory School. Track your schedule, lunch waves, and school events.",
+    siteName: "LakerWatch",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LakerWatch — Windermere Prep Schedule & Period Timer",
+    description:
+      "Free period countdown timer and student dashboard for Windermere Preparatory School.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  other: {
+    "geo.region": "US-FL",
+    "geo.placename": "Windermere, Florida",
+  },
 };
 
 export default function RootLayout({

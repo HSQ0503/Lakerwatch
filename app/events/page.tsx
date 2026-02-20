@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import EventsList from "@/components/EventsList";
+
+export const metadata: Metadata = {
+  title: "Events & Calendar",
+  description:
+    "Upcoming school events, breaks, early dismissals, and exam dates for Windermere Preparatory School 2025-2026 academic year.",
+};
 
 export default function EventsPage() {
   return (
