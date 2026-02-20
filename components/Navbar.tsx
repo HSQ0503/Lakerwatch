@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -20,8 +21,15 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
         <Link
           href="/"
-          className="flex items-center gap-0.5 font-display text-xl font-bold tracking-tight"
+          className="flex items-center gap-2 font-display text-xl font-bold tracking-tight"
         >
+          <Image
+            src="/logo.jpg"
+            alt="WP Logo"
+            width={36}
+            height={36}
+            className="rounded"
+          />
           <span className="text-white">Laker</span>
           <span className="text-red-light">Watch</span>
         </Link>
