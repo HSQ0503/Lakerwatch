@@ -89,7 +89,7 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-white shadow-sm dark:border-white/10 dark:bg-navy">
+    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-white shadow-sm dark:border-white/10 dark:bg-dark-bg">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
         <Link
           href="/"
@@ -170,7 +170,7 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <div className="border-t border-border bg-white dark:border-white/10 dark:bg-navy md:hidden">
+        <div className="border-t border-border bg-white dark:border-white/10 dark:bg-dark-bg md:hidden">
           {NAV_LINKS.map((link) => {
             const isActive =
               link.href === "/"
