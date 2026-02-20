@@ -90,10 +90,11 @@ export default function Navbar() {
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-white shadow-sm dark:border-white/10 dark:bg-dark-bg">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+      <div className="flex h-16 items-center px-4">
+        {/* Left — Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 font-display text-xl font-bold tracking-tight"
+          className="flex shrink-0 items-center gap-2 font-display text-xl font-bold tracking-tight"
         >
           <Image
             src="/logo.jpg"
@@ -105,7 +106,8 @@ export default function Navbar() {
           <span className="text-red dark:text-white">Laker<span className="text-red"> Watch</span></span>
         </Link>
 
-        <div className="hidden items-center gap-6 md:flex">
+        {/* Center — Nav links */}
+        <div className="hidden flex-1 items-center justify-center gap-6 md:flex">
           {NAV_LINKS.map((link) => {
             const isActive =
               link.href === "/"
@@ -125,11 +127,15 @@ export default function Navbar() {
               </Link>
             );
           })}
+        </div>
+
+        {/* Right — Toggle + Theme */}
+        <div className="hidden shrink-0 items-center gap-2 md:flex">
           <LunchWaveToggle />
           {themeButton}
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="ml-auto flex items-center gap-2 md:hidden">
           <LunchWaveToggle />
           {themeButton}
           <button
