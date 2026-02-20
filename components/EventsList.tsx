@@ -1,0 +1,153 @@
+"use client";
+
+import { useState } from "react";
+import { useHasMounted } from "@/hooks/useHasMounted";
+import { EVENTS, type SchoolEvent, daysUntil } from "@/lib/events";
+
+function formatEventDate(event: SchoolEvent): string {
+  const date = new Date(event.date + "T12:00:00");
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+  };
+  const start = date.toLocaleDateString("en-US", options);
+
+  if (event.endDate) {
+    const end = new Date(event.endDate + "T12:00:00");
+    const endDay = end.toLocaleDateString("en-US", { day: "numeric" });
+    return `${start}\u2013${endDay}`;
+  }
+
+  return start;
+}
+
+function getMonthYear(dateStr: string): string {
+  const date = new Date(dateStr + "T12:00:00");
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+const TYPE_STYLES: Record<
+  SchoolEvent["type"],
+  { border: string; bg: string; dot: string }
+> = {
+  "no-school": {
+    border: "border-red/20",
+    bg: "bg-red/5",
+    dot: "bg-red",
+  },
+  "early-dismissal": {
+    border: "border-red/15",
+    bg: "bg-red/5",
+    dot: "bg-red-light",
+  },
+  event: { border: "border-border", bg: "bg-white", dot: "bg-navy" },
+  exam: {
+    border: "border-red/20",
+    bg: "bg-red/5",
+    dot: "bg-red",
+  },
+  deadline: {
+    border: "border-red/15",
+    bg: "bg-red/5",
+    dot: "bg-red-light",
+  },
+};
+
+export default function EventsList() {
+  const mounted = useHasMounted();
+  const [showPast, setShowPast] = useState(false);
+
+  if (!mounted) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-border" />
+        ))}
+      </div>
+    );
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
+
+  const filteredEvents = showPast
+    ? EVENTS
+    : EVENTS.filter((e) => {
+        const compareDate = e.endDate || e.date;
+        return compareDate >= todayStr;
+      });
+
+  // Group by month
+  const grouped: Record<string, SchoolEvent[]> = {};
+  for (const event of filteredEvents) {
+    const month = getMonthYear(event.date);
+    if (!grouped[month]) grouped[month] = [];
+    grouped[month].push(event);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg font-bold text-navy">
+          School Events
+        </h2>
+        <button
+          onClick={() => setShowPast(!showPast)}
+          className="text-sm text-muted transition-colors hover:text-navy"
+        >
+          {showPast ? "Hide past events" : "Show past events"}
+        </button>
+      </div>
+
+      {Object.entries(grouped).map(([month, events]) => (
+        <div key={month}>
+          <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted">
+            {month}
+          </h3>
+          <div className="space-y-2">
+            {events.map((event, i) => {
+              const days = daysUntil(event.date);
+              const isPast = days < 0;
+              const style = TYPE_STYLES[event.type];
+
+              return (
+                <div
+                  key={`${event.date}-${i}`}
+                  className={`rounded-xl border p-4 ${style.border} ${style.bg} ${isPast ? "opacity-50" : ""}`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`mt-2 h-2 w-2 rounded-full ${style.dot}`}
+                      />
+                      <div>
+                        <p className="font-medium text-text">{event.name}</p>
+                        <p className="text-sm text-muted">
+                          {formatEventDate(event)}
+                        </p>
+                      </div>
+                    </div>
+                    {!isPast && (
+                      <span className="whitespace-nowrap text-sm text-muted">
+                        {days === 0
+                          ? "Today"
+                          : days === 1
+                            ? "Tomorrow"
+                            : `${days} days`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {filteredEvents.length === 0 && (
+        <p className="py-8 text-center text-muted">No upcoming events</p>
+      )}
+    </div>
+  );
+}
