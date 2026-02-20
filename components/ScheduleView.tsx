@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useHasMounted } from "@/hooks/useHasMounted";
+import { useLunchWave } from "@/hooks/useLunchWave";
 import {
   getScheduleForDay,
   getCurrentPeriod,
@@ -32,12 +33,6 @@ function formatCountdown(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function readLunchWave(): LunchWave {
-  if (typeof window === "undefined") return "11/12";
-  const stored = localStorage.getItem("lakerwatch-lunch-wave");
-  return stored === "9/10" || stored === "11/12" ? stored : "11/12";
-}
-
 function getInitialDay(): number {
   if (typeof window === "undefined") return 1;
   const today = new Date().getDay();
@@ -46,7 +41,7 @@ function getInitialDay(): number {
 
 export default function ScheduleView() {
   const mounted = useHasMounted();
-  const [lunchWave, setLunchWave] = useState<LunchWave>(readLunchWave);
+  const { lunchWave, setWave } = useLunchWave();
   const [selectedDay, setSelectedDay] = useState(getInitialDay);
   const [now, setNow] = useState(new Date());
   const [showImage, setShowImage] = useState(false);
@@ -57,8 +52,7 @@ export default function ScheduleView() {
   }, []);
 
   const handleLunchWaveChange = (wave: LunchWave) => {
-    setLunchWave(wave);
-    localStorage.setItem("lakerwatch-lunch-wave", wave);
+    setWave(wave);
   };
 
   if (!mounted) {

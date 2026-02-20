@@ -12,6 +12,7 @@ type GameState = {
   date: string;
   guesses: string[];
   status: GameStatus;
+  answer: string;
 };
 
 const WORD_LENGTH = 5;
@@ -146,8 +147,8 @@ function getKeyBg(state: LetterState | undefined, isDark: boolean): string {
 
 export default function WordlePage() {
   const mounted = useHasMounted();
-  const [answer] = useState(getDailyWord);
   const savedState = loadGameState();
+  const [answer] = useState(() => savedState?.answer ?? getDailyWord());
   const [guesses, setGuesses] = useState<string[]>(savedState?.guesses ?? []);
   const [currentGuess, setCurrentGuess] = useState("");
   const [status, setStatus] = useState<GameStatus>(savedState?.status ?? "playing");
@@ -216,7 +217,7 @@ export default function WordlePage() {
         newStatus = "lost";
       }
       setStatus(newStatus);
-      saveGameState({ date: getTodayStr(), guesses: newGuesses, status: newStatus });
+      saveGameState({ date: getTodayStr(), guesses: newGuesses, status: newStatus, answer });
     }, WORD_LENGTH * 150 + 300);
   }, [currentGuess, guesses, status, answer]);
 

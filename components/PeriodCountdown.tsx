@@ -127,7 +127,7 @@ export default function PeriodCountdown({
         <p className="mb-2 font-display text-2xl font-bold text-text dark:text-dark-text md:text-3xl">
           {currentPeriod.name}
         </p>
-        <div className="relative mx-auto flex h-64 w-64 items-center justify-center md:h-72 md:w-72 lg:h-80 lg:w-80">
+        <div className="relative mx-auto flex h-72 w-72 items-center justify-center md:h-80 md:w-80 lg:h-96 lg:w-96">
           <svg
             className="absolute inset-0 h-full w-full -rotate-90"
             viewBox="0 0 200 200"
@@ -143,8 +143,8 @@ export default function PeriodCountdown({
               cy="100"
               r={RADIUS}
               fill="none"
-              className="stroke-border dark:stroke-white/10"
-              strokeWidth="5"
+              className="stroke-border dark:stroke-white/15"
+              strokeWidth="8"
             />
             <circle
               cx="100"
@@ -152,16 +152,16 @@ export default function PeriodCountdown({
               r={RADIUS}
               fill="none"
               stroke="url(#progressGradient)"
-              strokeWidth="10"
+              strokeWidth="14"
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={CIRCUMFERENCE * (1 - progress)}
               style={{ transition: "stroke-dashoffset 1s linear" }}
             />
           </svg>
-          <p className={`font-mono font-bold tabular-nums text-text dark:text-dark-text ${remaining >= 3600 ? "text-4xl md:text-5xl lg:text-6xl" : "text-5xl md:text-6xl lg:text-7xl"}`}>
+          <p className={`font-mono font-bold tabular-nums text-red dark:text-white ${remaining >= 3600 ? "text-5xl md:text-6xl lg:text-7xl" : "text-6xl md:text-7xl lg:text-8xl"}`}>
             {formatCountdown(Math.max(0, remaining))}
-          </p> 
+          </p>
         </div>
         {nextPeriod && (
           <p className="mt-3 text-base text-muted dark:text-dark-muted">

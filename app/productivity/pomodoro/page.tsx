@@ -4,12 +4,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
 
-type Mode = "focus" | "short" | "long";
+type Mode = "focus" | "short" | "long" | "custom";
 
 const PRESETS: { mode: Mode; label: string; minutes: number; color: string; ringColor: string }[] = [
   { mode: "focus", label: "Focus", minutes: 25, color: "text-red dark:text-red-light", ringColor: "#d43344" },
   { mode: "short", label: "Short Break", minutes: 5, color: "text-green-600 dark:text-green-400", ringColor: "#16a34a" },
   { mode: "long", label: "Long Break", minutes: 15, color: "text-yellow-600 dark:text-yellow-400", ringColor: "#ca8a04" },
+  { mode: "custom", label: "Custom", minutes: 10, color: "text-navy-light dark:text-navy-light", ringColor: "#2d4a8e" },
 ];
 
 const RADIUS = 90;
@@ -80,13 +81,14 @@ export default function PomodoroPage() {
   const [remaining, setRemaining] = useState(25 * 60);
   const [sessions, setSessions] = useState(() => readSessions().count);
   const [message, setMessage] = useState<string | null>(null);
+  const [customMinutes, setCustomMinutes] = useState(10);
 
   const endTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const preset = PRESETS.find((p) => p.mode === mode)!;
-  const totalSeconds = preset.minutes * 60;
-  const progress = 1 - remaining / totalSeconds;
+  const totalSeconds = mode === "custom" ? customMinutes * 60 : preset.minutes * 60;
+  const progress = totalSeconds > 0 ? 1 - remaining / totalSeconds : 0;
 
   const stopInterval = useCallback(() => {
     if (intervalRef.current) {
@@ -164,9 +166,21 @@ export default function PomodoroPage() {
     stopInterval();
     setRunning(false);
     setMode(newMode);
-    const newPreset = PRESETS.find((p) => p.mode === newMode)!;
-    setRemaining(newPreset.minutes * 60);
+    if (newMode === "custom") {
+      setRemaining(customMinutes * 60);
+    } else {
+      const newPreset = PRESETS.find((p) => p.mode === newMode)!;
+      setRemaining(newPreset.minutes * 60);
+    }
     setMessage(null);
+  };
+
+  const applyCustomTime = (mins: number) => {
+    const clamped = Math.max(1, Math.min(120, mins));
+    setCustomMinutes(clamped);
+    if (!running) {
+      setRemaining(clamped * 60);
+    }
   };
 
   if (!mounted) {
@@ -208,6 +222,21 @@ export default function PomodoroPage() {
           </button>
         ))}
       </div>
+
+      {/* Custom time input */}
+      {mode === "custom" && !running && (
+        <div className="mb-6 flex items-center gap-3">
+          <input
+            type="number"
+            min={1}
+            max={120}
+            value={customMinutes}
+            onChange={(e) => applyCustomTime(parseInt(e.target.value) || 1)}
+            className="w-20 rounded-lg border border-border bg-white px-3 py-2 text-center font-mono text-lg text-text focus:border-navy/40 focus:outline-none dark:border-dark-border dark:bg-dark-surface dark:text-dark-text"
+          />
+          <span className="text-sm text-muted dark:text-dark-muted">minutes</span>
+        </div>
+      )}
 
       {/* Timer ring */}
       <div className="relative flex h-72 w-72 items-center justify-center md:h-80 md:w-80">

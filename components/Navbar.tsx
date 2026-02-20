@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
+import { useLunchWave } from "@/hooks/useLunchWave";
+import { useHasMounted } from "@/hooks/useHasMounted";
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
@@ -37,6 +39,31 @@ function MoonIcon({ className }: { className?: string }) {
         d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
       />
     </svg>
+  );
+}
+
+function LunchWaveToggle() {
+  const hasMounted = useHasMounted();
+  const { lunchWave, toggle } = useLunchWave();
+
+  if (!hasMounted) return <div className="h-7 w-24" />;
+
+  const is1112 = lunchWave === "11/12";
+
+  return (
+    <button
+      onClick={toggle}
+      className="group flex items-center gap-2 rounded-full border border-border bg-bg px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-red/30 hover:text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-muted dark:hover:border-red/40 dark:hover:text-dark-text"
+      title={`Lunch: Grades ${lunchWave}`}
+    >
+      <span className={`transition-colors ${!is1112 ? "font-bold text-red" : ""}`}>9/10</span>
+      <div className="relative h-4 w-8 rounded-full bg-border transition-colors group-hover:bg-red/20 dark:bg-white/15 dark:group-hover:bg-red/30">
+        <div
+          className={`absolute top-0.5 h-3 w-3 rounded-full bg-red shadow-sm transition-all ${is1112 ? "left-[18px]" : "left-0.5"}`}
+        />
+      </div>
+      <span className={`transition-colors ${is1112 ? "font-bold text-red" : ""}`}>11/12</span>
+    </button>
   );
 }
 
@@ -98,10 +125,12 @@ export default function Navbar() {
               </Link>
             );
           })}
+          <LunchWaveToggle />
           {themeButton}
         </div>
 
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
+          <LunchWaveToggle />
           {themeButton}
           <button
             className="p-2 text-muted hover:text-red dark:text-white/60 dark:hover:text-white"
