@@ -15,10 +15,10 @@
   --color-text: #1e293b;
 
   --color-dark-bg: #0a1628;
-  --color-dark-surface: rgba(15, 29, 50, 0.6);
-  --color-dark-border: rgba(212, 51, 68, 0.15);
-  --color-dark-text: #e2e8f0;
-  --color-dark-muted: #94a3b8;
+  --color-dark-surface: rgba(20, 30, 52, 0.85);
+  --color-dark-border: rgba(255, 255, 255, 0.12);
+  --color-dark-text: #f1f5f9;
+  --color-dark-muted: #b0bec5;
 
   --font-display: var(--font-montserrat);
   --font-body: var(--font-dm-sans);

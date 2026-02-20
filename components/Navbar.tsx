@@ -62,7 +62,7 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-white shadow-sm dark:border-white/10 dark:bg-[#1a1018]">
+    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-white shadow-sm dark:border-white/10 dark:bg-navy">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
         <Link
           href="/"
@@ -75,7 +75,7 @@ export default function Navbar() {
             height={36}
             className="rounded"
           />
-          <span className="text-red dark:text-white">Laker<span className="text-red-light"> Watch</span></span>
+          <span className="text-red dark:text-white">Laker<span className="text-red"> Watch</span></span>
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
@@ -141,7 +141,7 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <div className="border-t border-border bg-white dark:border-white/10 dark:bg-[#1a1018] md:hidden">
+        <div className="border-t border-border bg-white dark:border-white/10 dark:bg-navy md:hidden">
           {NAV_LINKS.map((link) => {
             const isActive =
               link.href === "/"
