@@ -159,7 +159,7 @@ export default function PeriodCountdown({
               style={{ transition: "stroke-dashoffset 1s linear" }}
             />
           </svg>
-          <p className="font-mono text-5xl font-bold tabular-nums text-navy dark:text-dark-text md:text-6xl lg:text-7xl">
+          <p className={`font-mono font-bold tabular-nums text-navy dark:text-dark-text ${remaining >= 3600 ? "text-4xl md:text-5xl lg:text-6xl" : "text-5xl md:text-6xl lg:text-7xl"}`}>
             {formatCountdown(Math.max(0, remaining))}
           </p>
         </div>
