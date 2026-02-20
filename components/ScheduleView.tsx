@@ -89,7 +89,7 @@ export default function ScheduleView() {
               onClick={() => handleLunchWaveChange(wave)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 lunchWave === wave
-                  ? "bg-navy text-white"
+                  ? "bg-red text-white"
                   : "bg-white dark:bg-dark-surface text-muted dark:text-dark-muted hover:text-text dark:hover:text-dark-text"
               }`}
             >
@@ -107,7 +107,7 @@ export default function ScheduleView() {
             onClick={() => setSelectedDay(tab.dayOfWeek)}
             className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
               selectedDay === tab.dayOfWeek
-                ? "bg-navy text-white"
+                ? "bg-red text-white"
                 : "text-muted dark:text-dark-muted hover:text-text dark:hover:text-dark-text"
             } ${isToday && tab.dayOfWeek === now.getDay() ? "ring-1 ring-red/30" : ""}`}
           >
@@ -152,7 +152,7 @@ export default function ScheduleView() {
                   )}
                   <div>
                     <p
-                      className={`font-display font-semibold ${isCurrent ? "text-red" : "text-navy dark:text-dark-text"}`}
+                      className={`font-display font-semibold ${isCurrent ? "text-red" : "text-text dark:text-dark-text"}`}
                     >
                       {period.name}
                     </p>
@@ -185,7 +185,7 @@ export default function ScheduleView() {
       <div className="flex justify-center pt-2">
         <button
           onClick={() => setShowImage(true)}
-          className="flex items-center gap-2 rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-2.5 text-sm text-muted dark:text-dark-muted transition-colors hover:border-navy/30 hover:text-navy dark:hover:text-dark-text"
+          className="flex items-center gap-2 rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-2.5 text-sm text-muted dark:text-dark-muted transition-colors hover:border-red/30 hover:text-red dark:hover:text-dark-text"
         >
           <svg
             className="h-4 w-4"

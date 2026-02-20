@@ -22,7 +22,7 @@ import {
 
 const BADGE_COLORS = {
   monday: "border-border bg-bg text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text",
-  odd: "border-navy/20 bg-navy text-white",
+  odd: "border-red/20 bg-red-light text-white",
   even: "border-red/20 bg-red text-white",
 };
 
@@ -107,7 +107,7 @@ export default function PeriodCountdown({
     return (
       <div className="pt-6 pb-2 text-center">
         <p className="mb-1 text-xl text-muted dark:text-dark-muted">School starts in</p>
-        <p className="font-mono text-6xl font-bold tabular-nums text-navy dark:text-dark-text md:text-7xl lg:text-8xl">
+        <p className="font-mono text-6xl font-bold tabular-nums text-text dark:text-dark-text md:text-7xl lg:text-8xl">
           {formatCountdown(Math.max(0, seconds))}
         </p>
       </div>
@@ -124,7 +124,7 @@ export default function PeriodCountdown({
 
     return (
       <div className="pt-6 pb-2 text-center">
-        <p className="mb-2 font-display text-2xl font-bold text-navy dark:text-dark-text md:text-3xl">
+        <p className="mb-2 font-display text-2xl font-bold text-text dark:text-dark-text md:text-3xl">
           {currentPeriod.name}
         </p>
         <div className="relative mx-auto flex h-64 w-64 items-center justify-center md:h-72 md:w-72 lg:h-80 lg:w-80">
@@ -134,7 +134,7 @@ export default function PeriodCountdown({
           >
             <defs>
               <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#1b2b5e" />
+                <stop offset="0%" stopColor="#d43344" />
                 <stop offset="100%" stopColor="#b22234" />
               </linearGradient>
             </defs>
@@ -159,9 +159,9 @@ export default function PeriodCountdown({
               style={{ transition: "stroke-dashoffset 1s linear" }}
             />
           </svg>
-          <p className={`font-mono font-bold tabular-nums text-navy dark:text-dark-text ${remaining >= 3600 ? "text-4xl md:text-5xl lg:text-6xl" : "text-5xl md:text-6xl lg:text-7xl"}`}>
+          <p className={`font-mono font-bold tabular-nums text-text dark:text-dark-text ${remaining >= 3600 ? "text-4xl md:text-5xl lg:text-6xl" : "text-5xl md:text-6xl lg:text-7xl"}`}>
             {formatCountdown(Math.max(0, remaining))}
-          </p>
+          </p> 
         </div>
         {nextPeriod && (
           <p className="mt-3 text-base text-muted dark:text-dark-muted">

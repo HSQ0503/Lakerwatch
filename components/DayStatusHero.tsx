@@ -23,7 +23,7 @@ const DAY_NAMES = [
 
 const BADGE_COLORS = {
   monday: "border-border bg-bg text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text",
-  odd: "border-navy/20 bg-navy text-white",
+  odd: "border-red/20 bg-red-light text-white",
   even: "border-red/20 bg-red text-white",
 };
 
@@ -50,7 +50,7 @@ export default function DayStatusHero() {
 
     return (
       <div className="py-4 text-center">
-        <p className="font-display text-4xl font-extrabold text-navy dark:text-dark-text md:text-5xl lg:text-6xl">
+        <p className="font-display text-4xl font-extrabold text-text dark:text-dark-text md:text-5xl lg:text-6xl">
           No School Today
         </p>
         <p className="mt-2 text-lg text-muted dark:text-dark-muted">Enjoy your time off!</p>
@@ -81,8 +81,8 @@ export default function DayStatusHero() {
 
   return (
     <div className="py-4 text-center">
-      <p className="font-display text-4xl font-extrabold text-navy dark:text-dark-text md:text-5xl lg:text-6xl">
-        It&apos;s <span className="text-red">{dayName}</span>
+      <p className="font-display text-4xl font-extrabold text-red dark:text-dark-text md:text-5xl lg:text-6xl">
+        It&apos;s {dayName}
       </p>
       <div className="mt-2 flex items-center justify-center gap-3">
         <span

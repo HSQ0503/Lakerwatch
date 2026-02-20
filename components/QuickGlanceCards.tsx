@@ -73,7 +73,7 @@ export default function QuickGlanceCards() {
         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-red">
           {eventLabel}
         </p>
-        <p className="font-display text-lg font-bold text-navy dark:text-dark-text">
+        <p className="font-display text-lg font-bold text-text dark:text-dark-text">
           {eventName}
         </p>
         {eventDays !== null && (
@@ -90,12 +90,12 @@ export default function QuickGlanceCards() {
 
       <Link
         href="/todos"
-        className="rounded-xl border border-navy/10 border-l-[3px] border-l-navy bg-navy/5 p-4 transition-colors hover:bg-navy/10 dark:border-dark-border dark:border-l-navy-light dark:bg-dark-surface dark:backdrop-blur-md dark:hover:bg-white/10"
+        className="rounded-xl border border-red/15 border-l-[3px] border-l-red bg-red/5 p-4 transition-colors hover:bg-red/10 dark:border-dark-border dark:border-l-red dark:bg-dark-surface dark:backdrop-blur-md dark:hover:bg-white/10"
       >
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-navy-light dark:text-navy-light">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-red dark:text-red-light">
           To-Do
         </p>
-        <p className="font-display text-lg font-bold text-navy dark:text-dark-text">
+        <p className="font-display text-lg font-bold text-text dark:text-dark-text">
           {todoCount === 0
             ? "All caught up!"
             : `${todoCount} task${todoCount === 1 ? "" : "s"} remaining`}

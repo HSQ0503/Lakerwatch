@@ -40,7 +40,7 @@ const TYPE_STYLES: Record<
     bg: "bg-red/5 dark:bg-red/10",
     dot: "bg-red-light",
   },
-  event: { border: "border-border dark:border-dark-border", bg: "bg-white dark:bg-dark-surface", dot: "bg-navy dark:bg-navy-light" },
+  event: { border: "border-border dark:border-dark-border", bg: "bg-white dark:bg-dark-surface", dot: "bg-red dark:bg-red-light" },
   exam: {
     border: "border-red/20 dark:border-red/15",
     bg: "bg-red/5 dark:bg-red/10",
@@ -89,12 +89,12 @@ export default function EventsList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold text-navy dark:text-dark-text">
+        <h2 className="font-display text-lg font-bold text-text dark:text-dark-text">
           School Events
         </h2>
         <button
           onClick={() => setShowPast(!showPast)}
-          className="text-sm text-muted dark:text-dark-muted transition-colors hover:text-navy dark:hover:text-dark-text"
+          className="text-sm text-muted dark:text-dark-muted transition-colors hover:text-red dark:hover:text-dark-text"
         >
           {showPast ? "Hide past events" : "Show past events"}
         </button>
