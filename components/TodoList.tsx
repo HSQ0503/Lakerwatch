@@ -109,12 +109,12 @@ export default function TodoList() {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addTodo()}
           placeholder="Add a task..."
-          className="flex-1 rounded-xl border border-border bg-white px-4 py-2.5 text-text placeholder:text-muted/60 focus:border-navy/40 focus:outline-none"
+          className="flex-1 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-2.5 text-text dark:text-dark-text placeholder:text-muted/60 dark:placeholder:text-dark-muted/60 focus:border-navy/40 focus:outline-none"
         />
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="rounded-xl border border-border bg-white px-3 py-2.5 text-text focus:border-navy/40 focus:outline-none"
+          className="appearance-none rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23636e7b%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_10px_center] bg-no-repeat py-2.5 pl-3 pr-8 text-text dark:text-dark-text focus:border-navy/40 focus:outline-none"
         >
           {CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
@@ -131,7 +131,7 @@ export default function TodoList() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 rounded-lg border border-border bg-white p-1">
+      <div className="flex gap-1 rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-1">
         {(["all", "active", "completed"] as Filter[]).map((f) => (
           <button
             key={f}
@@ -139,7 +139,7 @@ export default function TodoList() {
             className={`flex-1 rounded-md py-2 text-sm font-medium capitalize transition-colors ${
               filter === f
                 ? "bg-navy text-white"
-                : "text-muted hover:text-text"
+                : "text-muted dark:text-dark-muted hover:text-text dark:hover:text-dark-text"
             }`}
           >
             {f}
@@ -152,14 +152,14 @@ export default function TodoList() {
         {filtered.map((todo) => (
           <div
             key={todo.id}
-            className="flex items-center gap-3 rounded-xl border border-border bg-white p-3"
+            className="flex items-center gap-3 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3"
           >
             <button
               onClick={() => toggleTodo(todo.id)}
               className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors ${
                 todo.completed
                   ? "border-navy bg-navy text-white"
-                  : "border-border hover:border-navy"
+                  : "border-border dark:border-dark-border hover:border-navy"
               }`}
             >
               {todo.completed && (
@@ -182,7 +182,7 @@ export default function TodoList() {
               className={`h-2 w-2 rounded-full ${getCategoryColor(todo.category)}`}
             />
             <span
-              className={`flex-1 ${todo.completed ? "text-muted line-through" : "text-text"}`}
+              className={`flex-1 ${todo.completed ? "text-muted dark:text-dark-muted line-through" : "text-text dark:text-dark-text"}`}
             >
               {todo.text}
             </span>
@@ -210,7 +210,7 @@ export default function TodoList() {
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <p className="py-8 text-center text-muted">
+        <p className="py-8 text-center text-muted dark:text-dark-muted">
           {filter === "completed"
             ? "No completed tasks yet"
             : filter === "active"
@@ -221,14 +221,14 @@ export default function TodoList() {
 
       {/* Footer */}
       {todos.length > 0 && (
-        <div className="flex items-center justify-between text-sm text-muted">
+        <div className="flex items-center justify-between text-sm text-muted dark:text-dark-muted">
           <span>
             {activeCount} task{activeCount === 1 ? "" : "s"} remaining
           </span>
           {todos.some((t) => t.completed) && (
             <button
               onClick={clearCompleted}
-              className="transition-colors hover:text-navy"
+              className="transition-colors hover:text-navy dark:hover:text-dark-text"
             >
               Clear completed
             </button>

@@ -21,10 +21,13 @@ import {
 } from "@/lib/schedule";
 
 const BADGE_COLORS = {
-  monday: "border-border bg-bg text-text",
+  monday: "border-border bg-bg text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text",
   odd: "border-navy/20 bg-navy text-white",
   even: "border-red/20 bg-red text-white",
 };
+
+const RADIUS = 90;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function formatCountdown(seconds: number): string {
   if (seconds <= 0) return "0:00";
@@ -52,10 +55,10 @@ export default function PeriodCountdown({
 
   if (!mounted) {
     return (
-      <div className="py-8 text-center">
-        <div className="mx-auto mb-4 h-6 w-48 animate-pulse rounded bg-border" />
-        <div className="mx-auto mb-4 h-16 w-56 animate-pulse rounded-lg bg-border" />
-        <div className="mx-auto h-2 w-64 animate-pulse rounded-full bg-border" />
+      <div className="pt-4 text-center">
+        <div className="mx-auto mb-2 h-6 w-48 animate-pulse rounded bg-border dark:bg-white/10" />
+        <div className="mx-auto mb-3 h-16 w-56 animate-pulse rounded-lg bg-border dark:bg-white/10" />
+        <div className="mx-auto h-2 w-48 animate-pulse rounded-full bg-border dark:bg-white/10" />
       </div>
     );
   }
@@ -78,13 +81,13 @@ export default function PeriodCountdown({
     const badgeColor = next ? BADGE_COLORS[next.dayType] : "";
 
     return (
-      <div className="py-8 text-center">
-        <p className="text-2xl font-medium text-muted">
+      <div className="pt-6 pb-2 text-center">
+        <p className="text-2xl font-medium text-muted dark:text-dark-muted">
           School&apos;s over — enjoy your evening!
         </p>
         {next && (
-          <div className="mt-5 flex items-center justify-center gap-2">
-            <p className="text-base text-muted">
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <p className="text-base text-muted dark:text-dark-muted">
               {next.isTomorrow ? "Tomorrow" : next.dayName} is
             </p>
             <span
@@ -102,9 +105,9 @@ export default function PeriodCountdown({
   if (isBeforeSchool(schedule, now)) {
     const seconds = getSchoolStartCountdown(schedule, now);
     return (
-      <div className="py-8 text-center">
-        <p className="mb-3 text-xl text-muted">School starts in</p>
-        <p className="font-mono text-6xl font-bold tabular-nums text-navy md:text-7xl lg:text-8xl">
+      <div className="pt-6 pb-2 text-center">
+        <p className="mb-1 text-xl text-muted dark:text-dark-muted">School starts in</p>
+        <p className="font-mono text-6xl font-bold tabular-nums text-navy dark:text-dark-text md:text-7xl lg:text-8xl">
           {formatCountdown(Math.max(0, seconds))}
         </p>
       </div>
@@ -120,25 +123,50 @@ export default function PeriodCountdown({
     const nextPeriod = getNextPeriod(schedule, now);
 
     return (
-      <div className="py-8 text-center">
-        <p className="mb-3 font-display text-2xl font-bold text-navy md:text-3xl">
+      <div className="pt-6 pb-2 text-center">
+        <p className="mb-2 font-display text-2xl font-bold text-navy dark:text-dark-text md:text-3xl">
           {currentPeriod.name}
         </p>
-        <p className="font-mono text-6xl font-bold tabular-nums text-navy md:text-7xl lg:text-8xl">
-          {formatCountdown(Math.max(0, remaining))}
-        </p>
-        <div className="mx-auto mt-5 max-w-sm">
-          <div className="h-2 overflow-hidden rounded-full bg-border">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-navy to-red transition-all duration-1000"
-              style={{ width: `${progress * 100}%` }}
+        <div className="relative mx-auto flex h-64 w-64 items-center justify-center md:h-72 md:w-72 lg:h-80 lg:w-80">
+          <svg
+            className="absolute inset-0 h-full w-full -rotate-90"
+            viewBox="0 0 200 200"
+          >
+            <defs>
+              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1b2b5e" />
+                <stop offset="100%" stopColor="#b22234" />
+              </linearGradient>
+            </defs>
+            <circle
+              cx="100"
+              cy="100"
+              r={RADIUS}
+              fill="none"
+              className="stroke-border dark:stroke-white/10"
+              strokeWidth="5"
             />
-          </div>
+            <circle
+              cx="100"
+              cy="100"
+              r={RADIUS}
+              fill="none"
+              stroke="url(#progressGradient)"
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={CIRCUMFERENCE * (1 - progress)}
+              style={{ transition: "stroke-dashoffset 1s linear" }}
+            />
+          </svg>
+          <p className="font-mono text-5xl font-bold tabular-nums text-navy dark:text-dark-text md:text-6xl lg:text-7xl">
+            {formatCountdown(Math.max(0, remaining))}
+          </p>
         </div>
         {nextPeriod && (
-          <p className="mt-4 text-base text-muted">
+          <p className="mt-3 text-base text-muted dark:text-dark-muted">
             Next up:{" "}
-            <span className="font-medium text-text">{nextPeriod.name}</span> at{" "}
+            <span className="font-medium text-text dark:text-dark-text">{nextPeriod.name}</span> at{" "}
             {formatTime(nextPeriod.start)}
           </p>
         )}
@@ -150,10 +178,10 @@ export default function PeriodCountdown({
   const passingInfo = getPassingTimeInfo(schedule, now);
   if (passingInfo) {
     return (
-      <div className="py-8 text-center">
-        <p className="mb-3 text-xl text-muted">
+      <div className="pt-6 pb-2 text-center">
+        <p className="mb-1 text-xl text-muted dark:text-dark-muted">
           Passing period —{" "}
-          <span className="font-medium text-text">
+          <span className="font-medium text-text dark:text-dark-text">
             {passingInfo.nextPeriod.name}
           </span>{" "}
           starts in

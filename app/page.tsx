@@ -24,18 +24,18 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8">
-      <DayStatusHero />
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col items-center text-center">
+        <DayStatusHero />
 
-      {mounted && (
-        <div className="flex justify-center">
+        {mounted && (
           <button
             onClick={handleWaveChange}
-            className="flex items-center gap-2 text-xs text-muted transition-colors hover:text-light"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border bg-bg px-3 py-1 text-xs font-medium text-muted transition-colors hover:bg-border hover:text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-muted dark:hover:bg-white/10 dark:hover:text-dark-text"
             title="Toggle lunch wave"
           >
             <svg
-              className="h-4 w-4"
+              className="h-3.5 w-3.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -55,10 +55,10 @@ export default function Dashboard() {
             </svg>
             Lunch: Grades {lunchWave}
           </button>
-        </div>
-      )}
+        )}
 
-      <PeriodCountdown lunchWave={lunchWave} />
+        <PeriodCountdown lunchWave={lunchWave} />
+      </div>
 
       <QuickGlanceCards />
     </div>

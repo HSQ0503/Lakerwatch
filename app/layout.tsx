@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { Analytics } from "@vercel/analytics/next";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -29,12 +30,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("lakerwatch-theme")==="dark")document.documentElement.classList.add("dark")}catch{}`,
+          }}
+        />
+      </head>
       <body
-        className={`${montserrat.variable} ${dmSans.variable} ${jetbrainsMono.variable} min-h-screen bg-bg font-body text-text antialiased`}
+        className={`${montserrat.variable} ${dmSans.variable} ${jetbrainsMono.variable} min-h-screen font-body antialiased`}
       >
         <Navbar />
         <main className="mx-auto max-w-5xl px-4 pb-12 pt-20">{children}</main>
+        <Analytics />
       </body>
     </html>
   );

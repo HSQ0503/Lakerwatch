@@ -81,8 +81,8 @@ export default function ScheduleView() {
     <div className="space-y-6">
       {/* Lunch wave toggle */}
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted">Lunch Wave:</span>
-        <div className="flex overflow-hidden rounded-lg border border-border">
+        <span className="text-sm text-muted dark:text-dark-muted">Lunch Wave:</span>
+        <div className="flex overflow-hidden rounded-lg border border-border dark:border-dark-border">
           {(["9/10", "11/12"] as LunchWave[]).map((wave) => (
             <button
               key={wave}
@@ -90,7 +90,7 @@ export default function ScheduleView() {
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 lunchWave === wave
                   ? "bg-navy text-white"
-                  : "bg-white text-muted hover:text-text"
+                  : "bg-white dark:bg-dark-surface text-muted dark:text-dark-muted hover:text-text dark:hover:text-dark-text"
               }`}
             >
               Grades {wave}
@@ -100,7 +100,7 @@ export default function ScheduleView() {
       </div>
 
       {/* Day tabs */}
-      <div className="flex gap-1 rounded-lg border border-border bg-white p-1">
+      <div className="flex gap-1 rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-1">
         {DAY_TABS.map((tab) => (
           <button
             key={tab.dayOfWeek}
@@ -108,7 +108,7 @@ export default function ScheduleView() {
             className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
               selectedDay === tab.dayOfWeek
                 ? "bg-navy text-white"
-                : "text-muted hover:text-text"
+                : "text-muted dark:text-dark-muted hover:text-text dark:hover:text-dark-text"
             } ${isToday && tab.dayOfWeek === now.getDay() ? "ring-1 ring-red/30" : ""}`}
           >
             {tab.label}
@@ -134,10 +134,10 @@ export default function ScheduleView() {
               key={`${period.name}-${period.start}`}
               className={`rounded-xl border p-4 transition-colors ${
                 isCurrent
-                  ? "border-red bg-red/5"
+                  ? "border-red dark:border-red/40 bg-red/5"
                   : isPast
-                    ? "border-border bg-bg opacity-60"
-                    : "border-border bg-white"
+                    ? "border-border dark:border-dark-border bg-bg dark:bg-dark-surface opacity-60"
+                    : "border-border dark:border-dark-border bg-white dark:bg-dark-surface"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -152,11 +152,11 @@ export default function ScheduleView() {
                   )}
                   <div>
                     <p
-                      className={`font-display font-semibold ${isCurrent ? "text-red" : "text-navy"}`}
+                      className={`font-display font-semibold ${isCurrent ? "text-red" : "text-navy dark:text-dark-text"}`}
                     >
                       {period.name}
                     </p>
-                    <p className="text-sm text-muted">
+                    <p className="text-sm text-muted dark:text-dark-muted">
                       {formatTime(period.start)} – {formatTime(period.end)} ·{" "}
                       {duration} min
                     </p>
@@ -185,7 +185,7 @@ export default function ScheduleView() {
       <div className="flex justify-center pt-2">
         <button
           onClick={() => setShowImage(true)}
-          className="flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm text-muted transition-colors hover:border-navy/30 hover:text-navy"
+          className="flex items-center gap-2 rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-2.5 text-sm text-muted dark:text-dark-muted transition-colors hover:border-navy/30 hover:text-navy dark:hover:text-dark-text"
         >
           <svg
             className="h-4 w-4"
@@ -211,12 +211,12 @@ export default function ScheduleView() {
           onClick={() => setShowImage(false)}
         >
           <div
-            className="relative max-h-[90vh] w-[80vw] overflow-auto rounded-xl border border-border bg-white shadow-xl"
+            className="relative max-h-[90vh] w-[80vw] overflow-auto rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-bg shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowImage(false)}
-              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-muted shadow-md transition-colors hover:text-text"
+              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-dark-surface text-muted dark:text-dark-muted shadow-md transition-colors hover:text-text dark:hover:text-dark-text"
             >
               <svg
                 className="h-5 w-5"

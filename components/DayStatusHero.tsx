@@ -22,7 +22,7 @@ const DAY_NAMES = [
 ];
 
 const BADGE_COLORS = {
-  monday: "border-border bg-bg text-text",
+  monday: "border-border bg-bg text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text",
   odd: "border-navy/20 bg-navy text-white",
   even: "border-red/20 bg-red text-white",
 };
@@ -32,9 +32,9 @@ export default function DayStatusHero() {
 
   if (!mounted) {
     return (
-      <div className="py-12 text-center">
-        <div className="mx-auto mb-3 h-10 w-64 animate-pulse rounded-lg bg-border" />
-        <div className="mx-auto h-7 w-40 animate-pulse rounded-full bg-border" />
+      <div className="py-4 text-center">
+        <div className="mx-auto mb-2 h-10 w-64 animate-pulse rounded-lg bg-border dark:bg-white/10" />
+        <div className="mx-auto h-7 w-40 animate-pulse rounded-full bg-border dark:bg-white/10" />
       </div>
     );
   }
@@ -49,14 +49,14 @@ export default function DayStatusHero() {
     const badgeColor = next ? BADGE_COLORS[next.dayType] : "";
 
     return (
-      <div className="py-14 text-center">
-        <p className="font-display text-4xl font-extrabold text-navy md:text-5xl lg:text-6xl">
+      <div className="py-4 text-center">
+        <p className="font-display text-4xl font-extrabold text-navy dark:text-dark-text md:text-5xl lg:text-6xl">
           No School Today
         </p>
-        <p className="mt-3 text-lg text-muted">Enjoy your time off!</p>
+        <p className="mt-2 text-lg text-muted dark:text-dark-muted">Enjoy your time off!</p>
         {next && (
-          <div className="mt-5 flex items-center justify-center gap-2">
-            <p className="text-base text-muted">
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <p className="text-base text-muted dark:text-dark-muted">
               {next.isTomorrow ? "Tomorrow" : next.dayName} is
             </p>
             <span
@@ -80,11 +80,11 @@ export default function DayStatusHero() {
   const badgeColor = BADGE_COLORS[dayType];
 
   return (
-    <div className="py-14 text-center">
-      <p className="font-display text-4xl font-extrabold text-navy md:text-5xl lg:text-6xl">
+    <div className="py-4 text-center">
+      <p className="font-display text-4xl font-extrabold text-navy dark:text-dark-text md:text-5xl lg:text-6xl">
         It&apos;s <span className="text-red">{dayName}</span>
       </p>
-      <div className="mt-4 flex items-center justify-center gap-3">
+      <div className="mt-2 flex items-center justify-center gap-3">
         <span
           className={`inline-block rounded-full border px-4 py-1.5 font-display text-base font-bold uppercase tracking-wider ${badgeColor}`}
         >

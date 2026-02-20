@@ -31,24 +31,24 @@ const TYPE_STYLES: Record<
   { border: string; bg: string; dot: string }
 > = {
   "no-school": {
-    border: "border-red/20",
-    bg: "bg-red/5",
+    border: "border-red/20 dark:border-red/15",
+    bg: "bg-red/5 dark:bg-red/10",
     dot: "bg-red",
   },
   "early-dismissal": {
-    border: "border-red/15",
-    bg: "bg-red/5",
+    border: "border-red/15 dark:border-red/10",
+    bg: "bg-red/5 dark:bg-red/10",
     dot: "bg-red-light",
   },
-  event: { border: "border-border", bg: "bg-white", dot: "bg-navy" },
+  event: { border: "border-border dark:border-dark-border", bg: "bg-white dark:bg-dark-surface", dot: "bg-navy dark:bg-navy-light" },
   exam: {
-    border: "border-red/20",
-    bg: "bg-red/5",
+    border: "border-red/20 dark:border-red/15",
+    bg: "bg-red/5 dark:bg-red/10",
     dot: "bg-red",
   },
   deadline: {
-    border: "border-red/15",
-    bg: "bg-red/5",
+    border: "border-red/15 dark:border-red/10",
+    bg: "bg-red/5 dark:bg-red/10",
     dot: "bg-red-light",
   },
 };
@@ -89,12 +89,12 @@ export default function EventsList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold text-navy">
+        <h2 className="font-display text-lg font-bold text-navy dark:text-dark-text">
           School Events
         </h2>
         <button
           onClick={() => setShowPast(!showPast)}
-          className="text-sm text-muted transition-colors hover:text-navy"
+          className="text-sm text-muted dark:text-dark-muted transition-colors hover:text-navy dark:hover:text-dark-text"
         >
           {showPast ? "Hide past events" : "Show past events"}
         </button>
@@ -102,7 +102,7 @@ export default function EventsList() {
 
       {Object.entries(grouped).map(([month, events]) => (
         <div key={month}>
-          <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted">
+          <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted dark:text-dark-muted">
             {month}
           </h3>
           <div className="space-y-2">
@@ -122,14 +122,14 @@ export default function EventsList() {
                         className={`mt-2 h-2 w-2 rounded-full ${style.dot}`}
                       />
                       <div>
-                        <p className="font-medium text-text">{event.name}</p>
-                        <p className="text-sm text-muted">
+                        <p className="font-medium text-text dark:text-dark-text">{event.name}</p>
+                        <p className="text-sm text-muted dark:text-dark-muted">
                           {formatEventDate(event)}
                         </p>
                       </div>
                     </div>
                     {!isPast && (
-                      <span className="whitespace-nowrap text-sm text-muted">
+                      <span className="whitespace-nowrap text-sm text-muted dark:text-dark-muted">
                         {days === 0
                           ? "Today"
                           : days === 1
@@ -146,7 +146,7 @@ export default function EventsList() {
       ))}
 
       {filteredEvents.length === 0 && (
-        <p className="py-8 text-center text-muted">No upcoming events</p>
+        <p className="py-8 text-center text-muted dark:text-dark-muted">No upcoming events</p>
       )}
     </div>
   );
