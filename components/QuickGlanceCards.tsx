@@ -68,7 +68,7 @@ export default function QuickGlanceCards() {
     <div className="grid gap-4 md:grid-cols-2">
       <Link
         href="/events"
-        className="rounded-xl border border-red/15 border-l-[3px] border-l-red bg-red/5 p-4 transition-colors hover:bg-red/10 dark:border-dark-border dark:border-l-red dark:bg-dark-surface dark:backdrop-blur-md dark:hover:bg-white/10"
+        className="rounded-xl border border-red/15 border-l-[3px] border-l-red bg-white p-5 shadow-sm transition-all hover:shadow-md hover:bg-red/5 dark:border-dark-border dark:border-l-red dark:bg-dark-surface dark:shadow-none dark:backdrop-blur-md dark:hover:bg-white/10"
       >
         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-red">
           {eventLabel}
@@ -90,7 +90,7 @@ export default function QuickGlanceCards() {
 
       <Link
         href="/todos"
-        className="rounded-xl border border-red/15 border-l-[3px] border-l-red bg-red/5 p-4 transition-colors hover:bg-red/10 dark:border-dark-border dark:border-l-red dark:bg-dark-surface dark:backdrop-blur-md dark:hover:bg-white/10"
+        className="rounded-xl border border-red/15 border-l-[3px] border-l-red bg-white p-5 shadow-sm transition-all hover:shadow-md hover:bg-red/5 dark:border-dark-border dark:border-l-red dark:bg-dark-surface dark:shadow-none dark:backdrop-blur-md dark:hover:bg-white/10"
       >
         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-red dark:text-red-light">
           To-Do

@@ -13,6 +13,7 @@ import {
   timeToMinutes,
   type LunchWave,
 } from "@/lib/schedule";
+import { getDevDate } from "@/lib/devTime";
 
 const DAY_TABS = [
   { label: "Mon", dayOfWeek: 1 },
@@ -43,11 +44,11 @@ export default function ScheduleView() {
   const mounted = useHasMounted();
   const { lunchWave, setWave } = useLunchWave();
   const [selectedDay, setSelectedDay] = useState(getInitialDay);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(() => getDevDate(new Date()));
   const [showImage, setShowImage] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
+    const interval = setInterval(() => setNow(getDevDate(new Date())), 1000);
     return () => clearInterval(interval);
   }, []);
 

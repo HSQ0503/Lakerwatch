@@ -10,6 +10,7 @@ import {
   isEarlyRelease,
   getNextSchoolDay,
 } from "@/lib/schedule";
+import { getDevDate } from "@/lib/devTime";
 
 const DAY_NAMES = [
   "Sunday",
@@ -39,7 +40,7 @@ export default function DayStatusHero() {
     );
   }
 
-  const now = new Date();
+  const now = getDevDate(new Date());
   const dayOfWeek = now.getDay();
   const dateStr = formatDateStr(now);
   const dayName = DAY_NAMES[dayOfWeek];

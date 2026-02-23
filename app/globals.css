@@ -62,3 +62,16 @@ body {
   0% { transform: scale(0.8); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* Countdown liveness pulse */
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(178, 34, 52, 0.3)); }
+  50% { filter: drop-shadow(0 0 6px rgba(178, 34, 52, 0.5)); }
+}
+
+.countdown-glow {
+  background: radial-gradient(circle, rgba(178, 34, 52, 0.06) 0%, transparent 70%);
+}
+.dark .countdown-glow {
+  background: radial-gradient(circle, rgba(212, 51, 68, 0.1) 0%, transparent 70%);
+}

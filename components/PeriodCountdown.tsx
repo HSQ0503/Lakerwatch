@@ -19,6 +19,7 @@ import {
   getNextSchoolDay,
   type LunchWave,
 } from "@/lib/schedule";
+import { getDevDate } from "@/lib/devTime";
 
 const BADGE_COLORS = {
   monday: "border-border bg-bg text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text",
@@ -46,10 +47,10 @@ export default function PeriodCountdown({
   lunchWave: LunchWave;
 }) {
   const mounted = useHasMounted();
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(() => getDevDate(new Date()));
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
+    const interval = setInterval(() => setNow(getDevDate(new Date())), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -127,7 +128,7 @@ export default function PeriodCountdown({
         <p className="mb-2 font-display text-2xl font-bold text-text dark:text-dark-text md:text-3xl">
           {currentPeriod.name}
         </p>
-        <div className="relative mx-auto flex h-72 w-72 items-center justify-center md:h-80 md:w-80 lg:h-96 lg:w-96">
+        <div className="countdown-glow relative mx-auto flex h-72 w-72 items-center justify-center md:h-80 md:w-80 lg:h-96 lg:w-96">
           <svg
             className="absolute inset-0 h-full w-full -rotate-90"
             viewBox="0 0 200 200"
@@ -156,7 +157,10 @@ export default function PeriodCountdown({
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={CIRCUMFERENCE * (1 - progress)}
-              style={{ transition: "stroke-dashoffset 1s linear" }}
+              style={{
+                transition: "stroke-dashoffset 1s linear",
+                animation: "pulse-glow 3s ease-in-out infinite",
+              }}
             />
           </svg>
           <p className={`font-mono font-bold tabular-nums text-red dark:text-white ${remaining >= 3600 ? "text-5xl md:text-6xl lg:text-7xl" : "text-6xl md:text-7xl lg:text-8xl"}`}>
@@ -164,11 +168,14 @@ export default function PeriodCountdown({
           </p>
         </div>
         {nextPeriod && (
-          <p className="mt-3 text-base text-muted dark:text-dark-muted">
-            Next up:{" "}
-            <span className="font-medium text-text dark:text-dark-text">{nextPeriod.name}</span> at{" "}
-            {formatTime(nextPeriod.start)}
-          </p>
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-bg px-4 py-2 dark:border-dark-border dark:bg-white/5">
+            <span className="text-sm font-medium text-muted dark:text-dark-muted">Next up</span>
+            <span className="h-1 w-1 rounded-full bg-red" />
+            <span className="text-sm font-semibold text-text dark:text-dark-text">{nextPeriod.name}</span>
+            <span className="font-mono text-sm tabular-nums text-muted dark:text-dark-muted">
+              {formatTime(nextPeriod.start)}
+            </span>
+          </div>
         )}
       </div>
     );
