@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model SchoolEvent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      String // "YYYY-MM-DD"
+  name      String
+  type      String // "no-school" | "early-dismissal" | "event" | "exam" | "deadline"
+  endDate   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

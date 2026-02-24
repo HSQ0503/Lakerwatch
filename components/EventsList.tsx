@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { EVENTS, type SchoolEvent, daysUntil } from "@/lib/events";
+import { type SchoolEvent, daysUntil } from "@/lib/events";
 
 function formatEventDate(event: SchoolEvent): string {
   const date = new Date(event.date + "T12:00:00");
@@ -55,9 +55,21 @@ const TYPE_STYLES: Record<
 
 export default function EventsList() {
   const mounted = useHasMounted();
+  const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showPast, setShowPast] = useState(false);
 
-  if (!mounted) {
+  useEffect(() => {
+    fetch("/api/events")
+      .then((res) => res.json())
+      .then((data) => {
+        setEvents(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (!mounted || loading) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -72,8 +84,8 @@ export default function EventsList() {
   const todayStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
 
   const filteredEvents = showPast
-    ? EVENTS
-    : EVENTS.filter((e) => {
+    ? events
+    : events.filter((e) => {
         const compareDate = e.endDate || e.date;
         return compareDate >= todayStr;
       });
@@ -100,20 +112,20 @@ export default function EventsList() {
         </button>
       </div>
 
-      {Object.entries(grouped).map(([month, events]) => (
+      {Object.entries(grouped).map(([month, monthEvents]) => (
         <div key={month}>
           <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted dark:text-dark-muted">
             {month}
           </h3>
           <div className="space-y-2">
-            {events.map((event, i) => {
+            {monthEvents.map((event, i) => {
               const days = daysUntil(event.date);
               const isPast = days < 0;
               const style = TYPE_STYLES[event.type];
 
               return (
                 <div
-                  key={`${event.date}-${i}`}
+                  key={event.id || `${event.date}-${i}`}
                   className={`rounded-xl border p-4 ${style.border} ${style.bg} ${isPast ? "opacity-50" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-4">
