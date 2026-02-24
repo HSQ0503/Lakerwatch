@@ -128,7 +128,7 @@ export default function PeriodCountdown({
         <p className="mb-2 font-display text-2xl font-bold text-text dark:text-dark-text md:text-3xl">
           {currentPeriod.name}
         </p>
-        <div className="countdown-glow relative mx-auto flex h-72 w-72 items-center justify-center md:h-80 md:w-80 lg:h-96 lg:w-96">
+        <div className="relative mx-auto flex h-72 w-72 items-center justify-center md:h-80 md:w-80 lg:h-96 lg:w-96">
           <svg
             className="absolute inset-0 h-full w-full -rotate-90"
             viewBox="0 0 200 200"
@@ -159,7 +159,6 @@ export default function PeriodCountdown({
               strokeDashoffset={CIRCUMFERENCE * (1 - progress)}
               style={{
                 transition: "stroke-dashoffset 1s linear",
-                animation: "pulse-glow 3s ease-in-out infinite",
               }}
             />
           </svg>
