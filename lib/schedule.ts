@@ -173,11 +173,6 @@ export function getDayTypeLabel(dayType: DayType): string {
       return "Even Day";
   }
 }
-
-export function isEarlyRelease(dayOfWeek: number): boolean {
-  return dayOfWeek === 3;
-}
-
 export function formatDateStr(date: Date): string {
   const y = date.getFullYear();
   const m = (date.getMonth() + 1).toString().padStart(2, "0");

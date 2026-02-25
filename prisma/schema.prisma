@@ -17,3 +17,15 @@ model SchoolEvent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Announcement {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  body      String
+  type      String // "info" | "warning" | "urgent"
+  pinned    Boolean  @default(false)
+  active    Boolean  @default(true)
+  expiresAt String? // "YYYY-MM-DD" or null
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

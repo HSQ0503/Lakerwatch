@@ -36,3 +36,34 @@ function formatLocalDate(date: Date): string {
   const d = date.getDate().toString().padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
+export const TYPE_STYLES: Record<
+  SchoolEvent["type"],
+  { border: string; bg: string; dot: string }
+> = {
+  "no-school": {
+    border: "border-red/20 dark:border-red/15",
+    bg: "bg-red/5 dark:bg-red/10",
+    dot: "bg-red",
+  },
+  "early-dismissal": {
+    border: "border-red/15 dark:border-red/10",
+    bg: "bg-red/5 dark:bg-red/10",
+    dot: "bg-red-light",
+  },
+  event: {
+    border: "border-border dark:border-dark-border",
+    bg: "bg-white dark:bg-dark-surface",
+    dot: "bg-red dark:bg-red-light",
+  },
+  exam: {
+    border: "border-red/20 dark:border-red/15",
+    bg: "bg-red/5 dark:bg-red/10",
+    dot: "bg-red",
+  },
+  deadline: {
+    border: "border-red/15 dark:border-red/10",
+    bg: "bg-red/5 dark:bg-red/10",
+    dot: "bg-red-light",
+  },
+};

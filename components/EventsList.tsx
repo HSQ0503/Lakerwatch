@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { type SchoolEvent, daysUntil } from "@/lib/events";
+import { type SchoolEvent, daysUntil, TYPE_STYLES } from "@/lib/events";
+import CalendarView from "@/components/CalendarView";
 
 function formatEventDate(event: SchoolEvent): string {
   const date = new Date(event.date + "T12:00:00");
@@ -26,38 +27,12 @@ function getMonthYear(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
-const TYPE_STYLES: Record<
-  SchoolEvent["type"],
-  { border: string; bg: string; dot: string }
-> = {
-  "no-school": {
-    border: "border-red/20 dark:border-red/15",
-    bg: "bg-red/5 dark:bg-red/10",
-    dot: "bg-red",
-  },
-  "early-dismissal": {
-    border: "border-red/15 dark:border-red/10",
-    bg: "bg-red/5 dark:bg-red/10",
-    dot: "bg-red-light",
-  },
-  event: { border: "border-border dark:border-dark-border", bg: "bg-white dark:bg-dark-surface", dot: "bg-red dark:bg-red-light" },
-  exam: {
-    border: "border-red/20 dark:border-red/15",
-    bg: "bg-red/5 dark:bg-red/10",
-    dot: "bg-red",
-  },
-  deadline: {
-    border: "border-red/15 dark:border-red/10",
-    bg: "bg-red/5 dark:bg-red/10",
-    dot: "bg-red-light",
-  },
-};
-
 export default function EventsList() {
   const mounted = useHasMounted();
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPast, setShowPast] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "calendar">("calendar");
 
   useEffect(() => {
     fetch("/api/events")
@@ -100,65 +75,90 @@ export default function EventsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-lg font-bold text-text dark:text-dark-text">
           School Events
         </h2>
-        <button
-          onClick={() => setShowPast(!showPast)}
-          className="text-sm text-muted dark:text-dark-muted transition-colors hover:text-red dark:hover:text-dark-text"
-        >
-          {showPast ? "Hide past events" : "Show past events"}
-        </button>
-      </div>
-
-      {Object.entries(grouped).map(([month, monthEvents]) => (
-        <div key={month}>
-          <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted dark:text-dark-muted">
-            {month}
-          </h3>
-          <div className="space-y-2">
-            {monthEvents.map((event, i) => {
-              const days = daysUntil(event.date);
-              const isPast = days < 0;
-              const style = TYPE_STYLES[event.type];
-
-              return (
-                <div
-                  key={event.id || `${event.date}-${i}`}
-                  className={`rounded-xl border p-4 ${style.border} ${style.bg} ${isPast ? "opacity-50" : ""}`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-2 h-2 w-2 rounded-full ${style.dot}`}
-                      />
-                      <div>
-                        <p className="font-medium text-text dark:text-dark-text">{event.name}</p>
-                        <p className="text-sm text-muted dark:text-dark-muted">
-                          {formatEventDate(event)}
-                        </p>
-                      </div>
-                    </div>
-                    {!isPast && (
-                      <span className="whitespace-nowrap text-sm text-muted dark:text-dark-muted">
-                        {days === 0
-                          ? "Today"
-                          : days === 1
-                            ? "Tomorrow"
-                            : `${days} days`}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+        <div className="flex items-center gap-3">
+          {viewMode === "cards" && (
+            <button
+              onClick={() => setShowPast(!showPast)}
+              className="text-sm text-muted transition-colors hover:text-red dark:text-dark-muted dark:hover:text-dark-text"
+            >
+              {showPast ? "Hide past events" : "Show past events"}
+            </button>
+          )}
+          <div className="flex gap-1 rounded-lg border border-border bg-white p-1 dark:border-dark-border dark:bg-dark-surface">
+            {(["cards", "calendar"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === mode
+                    ? "bg-red text-white"
+                    : "text-muted hover:text-text dark:text-dark-muted dark:hover:text-dark-text"
+                }`}
+              >
+                {mode === "cards" ? "Cards" : "Calendar"}
+              </button>
+            ))}
           </div>
         </div>
-      ))}
+      </div>
 
-      {filteredEvents.length === 0 && (
-        <p className="py-8 text-center text-muted dark:text-dark-muted">No upcoming events</p>
+      {viewMode === "calendar" ? (
+        <CalendarView events={events} />
+      ) : (
+        <>
+          {Object.entries(grouped).map(([month, monthEvents]) => (
+            <div key={month}>
+              <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted dark:text-dark-muted">
+                {month}
+              </h3>
+              <div className="space-y-2">
+                {monthEvents.map((event, i) => {
+                  const days = daysUntil(event.date);
+                  const isPast = days < 0;
+                  const style = TYPE_STYLES[event.type];
+
+                  return (
+                    <div
+                      key={event.id || `${event.date}-${i}`}
+                      className={`rounded-xl border p-4 ${style.border} ${style.bg} ${isPast ? "opacity-50" : ""}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`mt-2 h-2 w-2 rounded-full ${style.dot}`}
+                          />
+                          <div>
+                            <p className="font-medium text-text dark:text-dark-text">{event.name}</p>
+                            <p className="text-sm text-muted dark:text-dark-muted">
+                              {formatEventDate(event)}
+                            </p>
+                          </div>
+                        </div>
+                        {!isPast && (
+                          <span className="whitespace-nowrap text-sm text-muted dark:text-dark-muted">
+                            {days === 0
+                              ? "Today"
+                              : days === 1
+                                ? "Tomorrow"
+                                : `${days} days`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {filteredEvents.length === 0 && (
+            <p className="py-8 text-center text-muted dark:text-dark-muted">No upcoming events</p>
+          )}
+        </>
       )}
     </div>
   );

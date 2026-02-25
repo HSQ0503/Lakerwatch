@@ -7,7 +7,6 @@ import {
   isNoSchoolDate,
   formatDateStr,
   getEffectiveDayOfWeek,
-  isEarlyRelease,
   getNextSchoolDay,
 } from "@/lib/schedule";
 import { getDevDate } from "@/lib/devTime";
@@ -28,7 +27,7 @@ const BADGE_COLORS = {
   even: "border-red/20 bg-red text-white",
 };
 
-export default function DayStatusHero() {
+export default function DayStatusHero({ isEarlyDismissal = false }: { isEarlyDismissal?: boolean }) {
   const mounted = useHasMounted();
 
   if (!mounted) {
@@ -77,7 +76,6 @@ export default function DayStatusHero() {
   if (!dayType) return null;
 
   const dayTypeLabel = getDayTypeLabel(dayType);
-  const earlyRelease = isEarlyRelease(dayOfWeek);
   const badgeColor = BADGE_COLORS[dayType];
 
   return (
@@ -91,7 +89,7 @@ export default function DayStatusHero() {
         >
           {dayTypeLabel}
         </span>
-        {earlyRelease && (
+        {isEarlyDismissal && (
           <span className="inline-block rounded-full border border-red/20 bg-red px-4 py-1.5 text-base font-bold text-white">
             Early Release
           </span>
