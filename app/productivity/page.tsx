@@ -35,6 +35,14 @@ const TOOLS = [
     external: false,
     accent: "border-l-[#6aaa64]",
   },
+  {
+    name: "To-Do List",
+    description: "Track your assignments, projects, and tasks",
+    icon: "✅",
+    href: "/productivity/todos",
+    external: false,
+    accent: "border-l-red dark:border-l-red-light",
+  },
 ];
 
 export default function ProductivityPage() {

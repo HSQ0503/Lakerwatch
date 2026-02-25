@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { href: "/schedule", label: "Schedule" },
   { href: "/events", label: "Events" },
   { href: "/productivity", label: "Productivity" },
-  { href: "/todos", label: "To-Do" },
+  { href: "/media", label: "WPS-Media" },
 ];
 
 function SunIcon({ className }: { className?: string }) {
