@@ -4,6 +4,8 @@ export type PrepTalk = {
   youtubeUrl: string;
   weekDate: string; // "YYYY-MM-DD"
   description?: string | null;
+  likes?: number;
+  dislikes?: number;
   createdAt?: string;
 };
 
