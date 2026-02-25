@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
 
 export async function GET() {
   const events = await prisma.schoolEvent.findMany({
@@ -9,10 +10,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.ADMIN_PASSWORD}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const admin = await verifyAdmin(request);
+  if (!admin) return unauthorizedResponse();
 
   const body = await request.json();
   const { date, name, type, endDate } = body;

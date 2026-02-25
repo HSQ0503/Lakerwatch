@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.ADMIN_PASSWORD}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const admin = await verifyAdmin(request);
+  if (!admin) return unauthorizedResponse();
 
   const body = await request.json();
   const { title, body: announcementBody, type, pinned, active, expiresAt } = body;
@@ -38,10 +37,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.ADMIN_PASSWORD}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const admin = await verifyAdmin(request);
+  if (!admin) return unauthorizedResponse();
 
   await prisma.announcement.delete({ where: { id } });
   return NextResponse.json({ success: true });

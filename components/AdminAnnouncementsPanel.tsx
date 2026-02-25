@@ -21,11 +21,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-type AdminAnnouncementsPanelProps = {
-  getToken: () => string;
-};
-
-export default function AdminAnnouncementsPanel({ getToken }: AdminAnnouncementsPanelProps) {
+export default function AdminAnnouncementsPanel() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -35,23 +31,21 @@ export default function AdminAnnouncementsPanel({ getToken }: AdminAnnouncements
   const fetchAnnouncements = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/announcements?all=true", {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await fetch("/api/announcements?all=true");
       const data = await res.json();
       setAnnouncements(data);
     } catch {
       // ignore
     }
     setLoading(false);
-  }, [getToken]);
+  }, []);
 
   useEffect(() => { fetchAnnouncements(); }, [fetchAnnouncements]);
 
   async function handleAdd(data: { title: string; body: string; type: AnnouncementType; pinned: boolean; expiresAt: string }) {
     const res = await fetch("/api/announcements", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) { setShowAddForm(false); fetchAnnouncements(); }
@@ -61,7 +55,7 @@ export default function AdminAnnouncementsPanel({ getToken }: AdminAnnouncements
     if (!editingId) return;
     const res = await fetch(`/api/announcements/${editingId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) { setEditingId(null); fetchAnnouncements(); }
@@ -70,7 +64,6 @@ export default function AdminAnnouncementsPanel({ getToken }: AdminAnnouncements
   async function handleDelete(id: string) {
     const res = await fetch(`/api/announcements/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
     });
     if (res.ok) { setDeleteConfirmId(null); fetchAnnouncements(); }
   }
@@ -79,7 +72,7 @@ export default function AdminAnnouncementsPanel({ getToken }: AdminAnnouncements
     if (!currentActive && atLimit) return;
     await fetch(`/api/announcements/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active: !currentActive }),
     });
     fetchAnnouncements();

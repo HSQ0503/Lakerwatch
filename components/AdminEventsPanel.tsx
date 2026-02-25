@@ -25,11 +25,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-type AdminEventsPanelProps = {
-  getToken: () => string;
-};
-
-export default function AdminEventsPanel({ getToken }: AdminEventsPanelProps) {
+export default function AdminEventsPanel() {
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -54,7 +50,7 @@ export default function AdminEventsPanel({ getToken }: AdminEventsPanelProps) {
   async function handleAdd(data: { date: string; name: string; type: SchoolEvent["type"]; endDate: string }) {
     const res = await fetch("/api/events", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) { setShowAddForm(false); fetchEvents(); }
@@ -64,7 +60,7 @@ export default function AdminEventsPanel({ getToken }: AdminEventsPanelProps) {
     if (!editingId) return;
     const res = await fetch(`/api/events/${editingId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) { setEditingId(null); fetchEvents(); }
@@ -73,7 +69,6 @@ export default function AdminEventsPanel({ getToken }: AdminEventsPanelProps) {
   async function handleDelete(id: string) {
     const res = await fetch(`/api/events/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
     });
     if (res.ok) { setDeleteConfirmId(null); fetchEvents(); }
   }

@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const showAll = request.nextUrl.searchParams.get("all") === "true";
 
   if (showAll) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.ADMIN_PASSWORD}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const admin = await verifyAdmin(request);
+    if (!admin) return unauthorizedResponse();
     const announcements = await prisma.announcement.findMany({
       orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
     });
     return NextResponse.json(announcements);
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date().toISOString();
   const announcements = await prisma.announcement.findMany({
     where: {
       active: true,
-      OR: [{ expiresAt: null }, { expiresAt: { gte: today } }],
+      OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
     },
     orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
   });
@@ -27,10 +26,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.ADMIN_PASSWORD}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const admin = await verifyAdmin(request);
+  if (!admin) return unauthorizedResponse();
 
   const body = await request.json();
   const { title, body: announcementBody, type, pinned, expiresAt } = body;
@@ -44,11 +41,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid announcement type" }, { status: 400 });
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date().toISOString();
   const activeCount = await prisma.announcement.count({
     where: {
       active: true,
-      OR: [{ expiresAt: null }, { expiresAt: { gte: today } }],
+      OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
     },
   });
   if (activeCount >= 4) {

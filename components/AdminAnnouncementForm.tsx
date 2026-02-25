@@ -93,7 +93,7 @@ export default function AdminAnnouncementForm({
             Expires <span className="text-muted dark:text-dark-muted">(optional)</span>
           </label>
           <input
-            type="date"
+            type="datetime-local"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
             className={inputClass}

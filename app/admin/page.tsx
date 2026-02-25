@@ -1,46 +1,55 @@
 "use client";
 
-import { useState, useSyncExternalStore, useCallback } from "react";
+import { useState, useEffect } from "react";
 import AdminLoginForm from "@/components/AdminLoginForm";
 import AdminEventsPanel from "@/components/AdminEventsPanel";
 import AdminAnnouncementsPanel from "@/components/AdminAnnouncementsPanel";
 
 type Tab = "events" | "announcements";
-
-function getStoredPassword() {
-  return sessionStorage.getItem("admin-password");
-}
-
-const subscribeNoop = () => () => {};
+type AuthState = "loading" | "authenticated" | "unauthenticated";
 
 export default function AdminPage() {
-  const storedPassword = useSyncExternalStore(subscribeNoop, getStoredPassword, () => null);
-  const [isAuthed, setIsAuthed] = useState(storedPassword !== null);
+  const [authState, setAuthState] = useState<AuthState>("loading");
+  const [adminEmail, setAdminEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("events");
 
-  const getToken = useCallback(() => sessionStorage.getItem("admin-password") ?? "", []);
+  useEffect(() => {
+    fetch("/api/admin/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated) {
+          setAuthState("authenticated");
+          setAdminEmail(data.email);
+        } else {
+          setAuthState("unauthenticated");
+        }
+      })
+      .catch(() => setAuthState("unauthenticated"));
+  }, []);
 
-  async function handleLogin(password: string): Promise<boolean> {
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    if (res.ok) {
-      sessionStorage.setItem("admin-password", password);
-      setIsAuthed(true);
-      return true;
-    }
-    return false;
+  function handleAuthenticated() {
+    setAuthState("authenticated");
+    fetch("/api/admin/me")
+      .then((r) => r.json())
+      .then((d) => { if (d.email) setAdminEmail(d.email); });
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem("admin-password");
-    setIsAuthed(false);
+  async function handleLogout() {
+    await fetch("/api/admin/logout", { method: "POST" });
+    setAuthState("unauthenticated");
+    setAdminEmail("");
   }
 
-  if (!isAuthed) {
-    return <AdminLoginForm onLogin={handleLogin} />;
+  if (authState === "loading") {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-red border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (authState === "unauthenticated") {
+    return <AdminLoginForm onAuthenticated={handleAuthenticated} />;
   }
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -73,7 +82,7 @@ export default function AdminPage() {
             Admin Panel
           </h1>
           <p className="mt-0.5 text-sm text-muted dark:text-dark-muted">
-            Manage events and announcements
+            {adminEmail}
           </p>
         </div>
         <button
@@ -106,8 +115,8 @@ export default function AdminPage() {
       </div>
 
       {/* Content */}
-      {activeTab === "events" && <AdminEventsPanel getToken={getToken} />}
-      {activeTab === "announcements" && <AdminAnnouncementsPanel getToken={getToken} />}
+      {activeTab === "events" && <AdminEventsPanel />}
+      {activeTab === "announcements" && <AdminAnnouncementsPanel />}
     </div>
   );
 }
