@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import DayStatusHero from "@/components/DayStatusHero";
 import PeriodCountdown from "@/components/PeriodCountdown";
 import QuickGlanceCards from "@/components/QuickGlanceCards";
@@ -16,10 +16,18 @@ export default function Dashboard() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isEarlyDismissal, setIsEarlyDismissal] = useState(false);
 
-  useEffect(() => {
+  const lastAnnouncementsJson = useRef("");
+
+  const poll = useCallback(() => {
     fetch("/api/announcements")
       .then((res) => res.json())
-      .then(setAnnouncements)
+      .then((data: Announcement[]) => {
+        const json = JSON.stringify(data);
+        if (json !== lastAnnouncementsJson.current) {
+          lastAnnouncementsJson.current = json;
+          setAnnouncements(data);
+        }
+      })
       .catch(() => {});
 
     const today = formatDateStr(getDevDate(new Date()));
@@ -37,6 +45,12 @@ export default function Dashboard() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, [poll]);
 
   const hasAnnouncements = announcements.length > 0;
 
