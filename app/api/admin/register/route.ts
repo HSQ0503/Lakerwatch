@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   isEmailWhitelisted,
   hashPassword,
-  createToken,
-  createSessionResponse,
+  createPendingToken,
+  createPendingResponse,
 } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateOtp, sendOtpEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -43,10 +44,23 @@ export async function POST(request: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
+  const otp = generateOtp();
+
   const admin = await prisma.admin.create({
-    data: { email: normalized, passwordHash },
+    data: {
+      email: normalized,
+      passwordHash,
+      otpCode: otp,
+      otpExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      otpAttempts: 0,
+    },
   });
 
-  const token = createToken(admin.id, admin.email);
-  return createSessionResponse({ success: true, email: admin.email }, token);
+  await sendOtpEmail(admin.email, otp);
+
+  const pendingToken = createPendingToken(admin.id, admin.email);
+  return createPendingResponse(
+    { success: true, requiresOtp: true },
+    pendingToken
+  );
 }

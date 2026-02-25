@@ -1,20 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 type AdminLoginFormProps = {
   onAuthenticated: () => void;
 };
 
-type Step = "email" | "login" | "register";
+type Step = "email" | "login" | "register" | "otp";
+
+const OTP_LENGTH = 6;
+const RESEND_COOLDOWN = 60;
 
 export default function AdminLoginForm({ onAuthenticated }: AdminLoginFormProps) {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [otpDigits, setOtpDigits] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  // Focus first OTP input when entering OTP step
+  useEffect(() => {
+    if (step === "otp") {
+      inputRefs.current[0]?.focus();
+    }
+  }, [step]);
+
+  const handleOtpChange = useCallback(
+    (index: number, value: string) => {
+      if (!/^\d*$/.test(value)) return;
+      const digit = value.slice(-1);
+      const newDigits = [...otpDigits];
+      newDigits[index] = digit;
+      setOtpDigits(newDigits);
+      setError("");
+
+      if (digit && index < OTP_LENGTH - 1) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    },
+    [otpDigits]
+  );
+
+  const handleOtpKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent) => {
+      if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+    },
+    [otpDigits]
+  );
+
+  const handleOtpPaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    const newDigits = Array(OTP_LENGTH).fill("");
+    for (let i = 0; i < pasted.length; i++) {
+      newDigits[i] = pasted[i];
+    }
+    setOtpDigits(newDigits);
+    const focusIndex = Math.min(pasted.length, OTP_LENGTH - 1);
+    inputRefs.current[focusIndex]?.focus();
+  }, []);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,11 +110,14 @@ export default function AdminLoginForm({ onAuthenticated }: AdminLoginFormProps)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      const data = await res.json();
 
-      if (res.ok) {
-        onAuthenticated();
-      } else {
-        setError("Invalid password");
+      if (res.ok && data.requiresOtp) {
+        setOtpDigits(Array(OTP_LENGTH).fill(""));
+        setResendCooldown(RESEND_COOLDOWN);
+        setStep("otp");
+      } else if (!res.ok) {
+        setError(data.error || "Invalid password");
       }
     } catch {
       setError("Something went wrong");
@@ -85,12 +145,75 @@ export default function AdminLoginForm({ onAuthenticated }: AdminLoginFormProps)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      const data = await res.json();
+
+      if (res.ok && data.requiresOtp) {
+        setOtpDigits(Array(OTP_LENGTH).fill(""));
+        setResendCooldown(RESEND_COOLDOWN);
+        setStep("otp");
+      } else if (!res.ok) {
+        setError(data.error || "Registration failed");
+      }
+    } catch {
+      setError("Something went wrong");
+    }
+    setLoading(false);
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    const code = otpDigits.join("");
+    if (code.length !== OTP_LENGTH) {
+      setError("Please enter the full 6-digit code");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/admin/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
 
       if (res.ok) {
         onAuthenticated();
       } else {
-        const data = await res.json();
-        setError(data.error || "Registration failed");
+        setError(data.error || "Verification failed");
+        if (res.status === 401 || res.status === 429) {
+          // Session expired or too many attempts — go back to start
+          setTimeout(() => handleBack(), 2000);
+        }
+      }
+    } catch {
+      setError("Something went wrong");
+    }
+    setLoading(false);
+  }
+
+  async function handleResendOtp() {
+    if (resendCooldown > 0) return;
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/admin/resend-otp", {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setOtpDigits(Array(OTP_LENGTH).fill(""));
+        setResendCooldown(RESEND_COOLDOWN);
+        inputRefs.current[0]?.focus();
+      } else {
+        setError(data.error || "Failed to resend code");
+        if (res.status === 401) {
+          setTimeout(() => handleBack(), 2000);
+        }
       }
     } catch {
       setError("Something went wrong");
@@ -102,7 +225,9 @@ export default function AdminLoginForm({ onAuthenticated }: AdminLoginFormProps)
     setStep("email");
     setPassword("");
     setConfirmPassword("");
+    setOtpDigits(Array(OTP_LENGTH).fill(""));
     setError("");
+    setResendCooldown(0);
   }
 
   return (
@@ -118,11 +243,13 @@ export default function AdminLoginForm({ onAuthenticated }: AdminLoginFormProps)
             {step === "email" && "Admin Access"}
             {step === "login" && "Welcome Back"}
             {step === "register" && "Create Account"}
+            {step === "otp" && "Check Your Email"}
           </h1>
           <p className="mt-1 text-sm text-muted dark:text-dark-muted">
             {step === "email" && "Enter your admin email to continue"}
             {step === "login" && email}
             {step === "register" && "Set a password for your admin account"}
+            {step === "otp" && `We sent a verification code to ${email}`}
           </p>
         </div>
 
@@ -212,6 +339,53 @@ export default function AdminLoginForm({ onAuthenticated }: AdminLoginFormProps)
               >
                 Use a different email
               </button>
+            </form>
+          )}
+
+          {step === "otp" && (
+            <form onSubmit={handleVerifyOtp}>
+              <div className="mb-4 flex justify-center gap-2" onPaste={handleOtpPaste}>
+                {otpDigits.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { inputRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                    className="h-12 w-10 rounded-lg border border-border bg-bg text-center font-mono text-lg font-bold text-text dark:border-dark-border dark:bg-dark-bg dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-red/30"
+                  />
+                ))}
+              </div>
+              {error && <p className="mb-3 text-center text-sm text-red">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading}
+                className="mb-3 w-full rounded-lg bg-red px-4 py-2.5 font-medium text-white transition-colors hover:bg-red-light disabled:opacity-50"
+              >
+                {loading ? "Verifying..." : "Verify Code"}
+              </button>
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="text-sm text-muted transition-colors hover:text-text dark:text-dark-muted dark:hover:text-dark-text"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0 || loading}
+                  className="text-sm text-muted transition-colors hover:text-text disabled:opacity-50 dark:text-dark-muted dark:hover:text-dark-text"
+                >
+                  {resendCooldown > 0
+                    ? `Resend in ${resendCooldown}s`
+                    : "Resend code"}
+                </button>
+              </div>
             </form>
           )}
         </div>

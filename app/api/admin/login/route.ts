@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyPassword, createToken, createSessionResponse } from "@/lib/auth";
+import { verifyPassword, createPendingToken, createPendingResponse } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateOtp, sendOtpEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -31,6 +32,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const token = createToken(admin.id, admin.email);
-  return createSessionResponse({ success: true, email: admin.email }, token);
+  const otp = generateOtp();
+  await prisma.admin.update({
+    where: { id: admin.id },
+    data: {
+      otpCode: otp,
+      otpExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      otpAttempts: 0,
+    },
+  });
+
+  await sendOtpEmail(admin.email, otp);
+
+  const pendingToken = createPendingToken(admin.id, admin.email);
+  return createPendingResponse(
+    { success: true, requiresOtp: true },
+    pendingToken
+  );
 }
