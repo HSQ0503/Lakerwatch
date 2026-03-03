@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { type SchoolEvent, TYPE_STYLES } from "@/lib/events";
 
 type CalendarViewProps = {
   events: SchoolEvent[];
+  interactive?: boolean;
+  onDateClick?: (date: string) => void;
+  onDateRangeSelect?: (start: string, end: string) => void;
 };
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -48,11 +51,22 @@ function buildEventMap(events: SchoolEvent[]): Map<string, SchoolEvent[]> {
 
 const MAX_VISIBLE = 3;
 
-export default function CalendarView({ events }: CalendarViewProps) {
+function isInRange(dateKey: string, start: string | null, end: string | null): boolean {
+  if (!start || !end) return false;
+  const lo = start < end ? start : end;
+  const hi = start < end ? end : start;
+  return dateKey >= lo && dateKey <= hi;
+}
+
+export default function CalendarView({ events, interactive, onDateClick, onDateRangeSelect }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
   });
+
+  const [dragStart, setDragStart] = useState<string | null>(null);
+  const [dragEnd, setDragEnd] = useState<string | null>(null);
+  const isDragging = useRef(false);
 
   const eventMap = useMemo(() => buildEventMap(events), [events]);
   const days = useMemo(
@@ -83,6 +97,46 @@ export default function CalendarView({ events }: CalendarViewProps) {
       return { year: y, month: m };
     });
   }
+
+  const handleMouseDown = useCallback((dateKey: string) => {
+    if (!interactive) return;
+    isDragging.current = true;
+    setDragStart(dateKey);
+    setDragEnd(dateKey);
+  }, [interactive]);
+
+  const handleMouseEnter = useCallback((dateKey: string) => {
+    if (!interactive || !isDragging.current) return;
+    setDragEnd(dateKey);
+  }, [interactive]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!interactive || !isDragging.current || !dragStart) return;
+    isDragging.current = false;
+    const end = dragEnd || dragStart;
+    if (dragStart === end) {
+      onDateClick?.(dragStart);
+    } else {
+      const lo = dragStart < end ? dragStart : end;
+      const hi = dragStart < end ? end : dragStart;
+      onDateRangeSelect?.(lo, hi);
+    }
+    setDragStart(null);
+    setDragEnd(null);
+  }, [interactive, dragStart, dragEnd, onDateClick, onDateRangeSelect]);
+
+  useEffect(() => {
+    if (!interactive) return;
+    const handleGlobalUp = () => {
+      if (isDragging.current) {
+        isDragging.current = false;
+        setDragStart(null);
+        setDragEnd(null);
+      }
+    };
+    window.addEventListener("mouseup", handleGlobalUp);
+    return () => window.removeEventListener("mouseup", handleGlobalUp);
+  }, [interactive]);
 
   return (
     <div className="space-y-4">
@@ -144,22 +198,27 @@ export default function CalendarView({ events }: CalendarViewProps) {
         </div>
 
         {/* Day cells */}
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-7" onMouseUp={interactive ? handleMouseUp : undefined}>
           {days.map((day, i) => {
             const key = day ? formatDateKey(day) : `empty-${i}`;
             const isToday = day ? key === todayKey : false;
             const cellEvents = day ? eventMap.get(key) || [] : [];
+            const inRange = day ? isInRange(key, dragStart, dragEnd) : false;
 
             return (
               <div
                 key={key}
+                onMouseDown={day && interactive ? () => handleMouseDown(key) : undefined}
+                onMouseEnter={day && interactive ? () => handleMouseEnter(key) : undefined}
                 className={`min-h-[90px] border-b border-r border-border p-2 sm:min-h-[120px] dark:border-dark-border ${
-                  isToday
-                    ? "bg-red/5"
-                    : day
-                      ? "bg-white dark:bg-dark-surface"
-                      : "bg-bg/50 dark:bg-dark-bg/30"
-                }`}
+                  inRange
+                    ? "bg-red/10 dark:bg-red/15"
+                    : isToday
+                      ? "bg-red/5"
+                      : day
+                        ? "bg-white dark:bg-dark-surface"
+                        : "bg-bg/50 dark:bg-dark-bg/30"
+                } ${day && interactive ? "cursor-pointer select-none transition-colors hover:bg-red/5 dark:hover:bg-red/10" : ""}`}
               >
                 {day && (
                   <>

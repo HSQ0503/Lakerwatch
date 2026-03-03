@@ -5,6 +5,8 @@ import type { SchoolEvent } from "@/lib/events";
 
 type AdminEventFormProps = {
   event?: SchoolEvent;
+  initialDate?: string;
+  initialEndDate?: string;
   onSave: (data: { date: string; name: string; type: SchoolEvent["type"]; endDate: string }) => void;
   onCancel: () => void;
 };
@@ -17,11 +19,11 @@ const EVENT_TYPES: { value: SchoolEvent["type"]; label: string }[] = [
   { value: "deadline", label: "Deadline" },
 ];
 
-export default function AdminEventForm({ event, onSave, onCancel }: AdminEventFormProps) {
+export default function AdminEventForm({ event, initialDate, initialEndDate, onSave, onCancel }: AdminEventFormProps) {
   const [name, setName] = useState(event?.name ?? "");
-  const [date, setDate] = useState(event?.date ?? "");
+  const [date, setDate] = useState(event?.date ?? initialDate ?? "");
   const [type, setType] = useState<SchoolEvent["type"]>(event?.type ?? "event");
-  const [endDate, setEndDate] = useState(event?.endDate ?? "");
+  const [endDate, setEndDate] = useState(event?.endDate ?? initialEndDate ?? "");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

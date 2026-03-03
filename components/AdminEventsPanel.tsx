@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import AdminEventForm from "@/components/AdminEventForm";
+import CalendarView from "@/components/CalendarView";
 import type { SchoolEvent } from "@/lib/events";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -27,16 +28,21 @@ function formatDate(dateStr: string): string {
 
 export default function AdminEventsPanel() {
   const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [allEvents, setAllEvents] = useState<SchoolEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "calendar">("cards");
+  const [prefillDate, setPrefillDate] = useState<string>("");
+  const [prefillEndDate, setPrefillEndDate] = useState<string>("");
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/events");
       const data: SchoolEvent[] = await res.json();
+      setAllEvents(data);
       const today = new Date().toISOString().split("T")[0];
       setEvents(data.filter((e) => (e.endDate ?? e.date) >= today));
     } catch {
@@ -53,7 +59,7 @@ export default function AdminEventsPanel() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (res.ok) { setShowAddForm(false); fetchEvents(); }
+    if (res.ok) { setShowAddForm(false); setPrefillDate(""); setPrefillEndDate(""); fetchEvents(); }
   }
 
   async function handleEdit(data: { date: string; name: string; type: SchoolEvent["type"]; endDate: string }) {
@@ -73,6 +79,26 @@ export default function AdminEventsPanel() {
     if (res.ok) { setDeleteConfirmId(null); fetchEvents(); }
   }
 
+  function handleCalendarDateClick(date: string) {
+    setPrefillDate(date);
+    setPrefillEndDate("");
+    setShowAddForm(true);
+    setEditingId(null);
+  }
+
+  function handleCalendarRangeSelect(start: string, end: string) {
+    setPrefillDate(start);
+    setPrefillEndDate(end);
+    setShowAddForm(true);
+    setEditingId(null);
+  }
+
+  function handleCancelAdd() {
+    setShowAddForm(false);
+    setPrefillDate("");
+    setPrefillEndDate("");
+  }
+
   return (
     <div>
       {/* Header */}
@@ -82,18 +108,35 @@ export default function AdminEventsPanel() {
             Events
           </h2>
           <p className="text-sm text-muted dark:text-dark-muted">
-            {events.length} event{events.length !== 1 ? "s" : ""}
+            {events.length} upcoming event{events.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <button
-          onClick={() => { setShowAddForm(true); setEditingId(null); }}
-          className="flex items-center gap-1.5 rounded-lg bg-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-light"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Event
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border dark:border-dark-border">
+            {(["cards", "calendar"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
+                  viewMode === mode
+                    ? "bg-red text-white"
+                    : "text-muted hover:text-text dark:text-dark-muted dark:hover:text-dark-text"
+                } ${mode === "cards" ? "rounded-l-md" : "rounded-r-md"}`}
+              >
+                {mode === "cards" ? "Cards" : "Calendar"}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => { setShowAddForm(true); setEditingId(null); setPrefillDate(""); setPrefillEndDate(""); }}
+            className="flex items-center gap-1.5 rounded-lg bg-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-light"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Event
+          </button>
+        </div>
       </div>
 
       {/* Add Form */}
@@ -102,12 +145,24 @@ export default function AdminEventsPanel() {
           <h3 className="mb-4 font-display text-base font-bold text-text dark:text-dark-text">
             New Event
           </h3>
-          <AdminEventForm onSave={handleAdd} onCancel={() => setShowAddForm(false)} />
+          <AdminEventForm
+            initialDate={prefillDate}
+            initialEndDate={prefillEndDate}
+            onSave={handleAdd}
+            onCancel={handleCancelAdd}
+          />
         </div>
       )}
 
-      {/* List */}
-      {loading ? (
+      {/* Calendar View */}
+      {viewMode === "calendar" ? (
+        <CalendarView
+          events={allEvents}
+          interactive
+          onDateClick={handleCalendarDateClick}
+          onDateRangeSelect={handleCalendarRangeSelect}
+        />
+      ) : loading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-[72px] animate-pulse rounded-xl bg-border/50 dark:bg-white/5" />
