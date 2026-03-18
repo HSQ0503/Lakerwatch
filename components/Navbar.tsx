@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
   { href: "/schedule", label: "Schedule" },
   { href: "/events", label: "Events" },
+  { href: "/lunch", label: "Lunch" },
   { href: "/productivity", label: "Productivity" },
   { href: "/media", label: "WPS-Media" },
 ];

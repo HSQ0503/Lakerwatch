@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:wps.flikisdining.com)",
+      "WebFetch(domain:wps.nutrislice.com)"
+    ]
+  }
+}

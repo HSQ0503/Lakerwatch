@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { filterUpcoming, findNextNoSchool, daysUntil, type SchoolEvent } from "@/lib/events";
+import LunchPreview from "@/components/LunchPreview";
 
 type TodoItem = { text: string; completed: boolean };
 
@@ -54,7 +55,8 @@ export default function QuickGlanceCards() {
 
   if (!mounted) {
     return (
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="h-24 animate-pulse rounded-xl bg-border dark:bg-white/10" />
         <div className="h-24 animate-pulse rounded-xl bg-border dark:bg-white/10" />
         <div className="h-24 animate-pulse rounded-xl bg-border dark:bg-white/10" />
       </div>
@@ -74,7 +76,7 @@ export default function QuickGlanceCards() {
     : null;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-3">
       <Link
         href="/events"
         className="rounded-xl border border-red/15 border-l-[3px] border-l-red bg-white p-5 shadow-sm transition-all hover:shadow-md hover:bg-red/5 dark:border-dark-border dark:border-l-red dark:bg-dark-surface dark:shadow-none dark:backdrop-blur-md dark:hover:bg-white/10"
@@ -113,6 +115,8 @@ export default function QuickGlanceCards() {
           {nextTodo ? `Next: ${nextTodo.text}` : "Nothing to do"}
         </p>
       </Link>
+
+      <LunchPreview />
     </div>
   );
 }
