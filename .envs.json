@@ -1,0 +1,8 @@
+{
+  "projectId": "prj_3ba0bb4c",
+  "projectName": "Lakerwatch",
+  "environments": {
+    "development": ".env"
+  },
+  "ignore": []
+}
