@@ -23,61 +23,79 @@ const MONDAY_BEFORE = [
   { name: "1st Period", start: "07:45", end: "08:30" },
   { name: "2nd Period", start: "08:35", end: "09:20" },
   { name: "3rd Period", start: "09:25", end: "10:10" },
-  { name: "4th Core/TOK", start: "10:15", end: "10:50" },
-  { name: "5th Period", start: "10:55", end: "11:40" },
+  { name: "4th Period", start: "10:15", end: "11:00" },
+  { name: "5th Period", start: "11:05", end: "11:50" },
 ];
 const MONDAY_910 = [
-  { name: "Lunch", start: "11:45", end: "12:20" },
+  { name: "Lunch", start: "11:50", end: "12:20" },
   { name: "6th Period", start: "12:25", end: "13:10" },
 ];
 const MONDAY_1112 = [
-  { name: "6th Period", start: "11:45", end: "12:30" },
-  { name: "Lunch", start: "12:35", end: "13:10" },
+  { name: "6th Period", start: "11:55", end: "12:40" },
+  { name: "Lunch", start: "12:40", end: "13:10" },
 ];
 const MONDAY_AFTER = [
   { name: "7th Period", start: "13:15", end: "14:00" },
   { name: "8th Period", start: "14:05", end: "14:50" },
 ];
 
-const ODD_BEFORE = [
+const TUE_BEFORE = [
+  { name: "1st Period", start: "07:45", end: "09:05" },
+  { name: "Prep Talk", start: "09:05", end: "09:20" },
+  { name: "3rd Period", start: "09:30", end: "10:50" },
+];
+const TUE_910 = [
+  { name: "Lunch", start: "10:50", end: "11:30" },
+  { name: "5th Period", start: "11:35", end: "12:55" },
+];
+const TUE_1112 = [
+  { name: "5th Period", start: "11:00", end: "12:20" },
+  { name: "Lunch", start: "12:20", end: "13:00" },
+];
+const TUE_AFTER = [
+  { name: "7th Period", start: "13:05", end: "14:25" },
+  { name: "Club Time", start: "14:25", end: "14:50" },
+];
+
+const WED_BEFORE = [
+  { name: "2nd Period", start: "07:45", end: "09:05" },
+  { name: "4th Period", start: "09:10", end: "10:30" },
+];
+const WED_910 = [
+  { name: "Lunch", start: "10:30", end: "11:10" },
+  { name: "6th Period", start: "11:15", end: "12:35" },
+];
+const WED_1112 = [
+  { name: "6th Period", start: "10:35", end: "11:55" },
+  { name: "Lunch", start: "11:55", end: "12:35" },
+];
+const WED_AFTER = [{ name: "8th Period", start: "12:40", end: "14:00" }];
+
+const THU_BEFORE = [
   { name: "1st Period", start: "07:45", end: "09:15" },
   { name: "3rd Period", start: "09:25", end: "10:55" },
 ];
-const ODD_910 = [
-  { name: "Lunch", start: "11:00", end: "11:35" },
+const THU_910 = [
+  { name: "Lunch", start: "10:55", end: "11:35" },
   { name: "5th Period", start: "11:40", end: "13:10" },
 ];
-const ODD_1112 = [
-  { name: "5th Period", start: "11:00", end: "12:30" },
-  { name: "Lunch", start: "12:35", end: "13:10" },
+const THU_1112 = [
+  { name: "5th Period", start: "11:05", end: "12:35" },
+  { name: "Lunch", start: "12:35", end: "13:15" },
 ];
-const ODD_AFTER = [{ name: "7th Period", start: "13:20", end: "14:50" }];
-
-const WED_BEFORE = [
-  { name: "2nd Period", start: "07:45", end: "09:15" },
-  { name: "4th Core/TOK", start: "09:20", end: "10:15" },
-];
-const WED_910 = [
-  { name: "Lunch", start: "10:20", end: "10:55" },
-  { name: "6th Period", start: "10:55", end: "12:25" },
-];
-const WED_1112 = [
-  { name: "6th Period", start: "10:20", end: "11:50" },
-  { name: "Lunch", start: "11:50", end: "12:25" },
-];
-const WED_AFTER = [{ name: "8th Period", start: "12:30", end: "14:00" }];
+const THU_AFTER = [{ name: "7th Period", start: "13:20", end: "14:50" }];
 
 const FRI_BEFORE = [
   { name: "2nd Period", start: "07:45", end: "09:15" },
-  { name: "4th Core/TOK", start: "09:25", end: "10:55" },
+  { name: "4th Period", start: "09:25", end: "10:55" },
 ];
 const FRI_910 = [
-  { name: "Lunch", start: "11:00", end: "11:35" },
+  { name: "Lunch", start: "10:55", end: "11:35" },
   { name: "6th Period", start: "11:40", end: "13:10" },
 ];
 const FRI_1112 = [
-  { name: "6th Period", start: "11:00", end: "12:30" },
-  { name: "Lunch", start: "12:35", end: "13:10" },
+  { name: "6th Period", start: "11:05", end: "12:35" },
+  { name: "Lunch", start: "12:35", end: "13:15" },
 ];
 const FRI_AFTER = [{ name: "8th Period", start: "13:20", end: "14:50" }];
 
@@ -151,8 +169,9 @@ function getScheduleForDay(dayOfWeek, lunchWave) {
   const is910 = lunchWave === "9/10";
   switch (dayOfWeek) {
     case 1: return [...MONDAY_BEFORE, ...(is910 ? MONDAY_910 : MONDAY_1112), ...MONDAY_AFTER];
-    case 2: case 4: return [...ODD_BEFORE, ...(is910 ? ODD_910 : ODD_1112), ...ODD_AFTER];
+    case 2: return [...TUE_BEFORE, ...(is910 ? TUE_910 : TUE_1112), ...TUE_AFTER];
     case 3: return [...WED_BEFORE, ...(is910 ? WED_910 : WED_1112), ...WED_AFTER];
+    case 4: return [...THU_BEFORE, ...(is910 ? THU_910 : THU_1112), ...THU_AFTER];
     case 5: return [...FRI_BEFORE, ...(is910 ? FRI_910 : FRI_1112), ...FRI_AFTER];
     default: return [];
   }

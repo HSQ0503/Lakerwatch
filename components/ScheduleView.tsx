@@ -229,7 +229,7 @@ export default function ScheduleView() {
             </button>
             <Image
               src="/Schedual.jpg"
-              alt="WPS 2024-2025 Daily Schedule"
+              alt="WPS 2026-2027 Daily Schedule"
               width={800}
               height={600}
               className="h-auto w-full rounded-xl"
