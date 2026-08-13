@@ -11,6 +11,7 @@ import {
   formatTime,
   getPeriodDuration,
   timeToMinutes,
+  getEffectiveDayOfWeek,
   type LunchWave,
 } from "@/lib/schedule";
 import { getDevDate } from "@/lib/devTime";
@@ -68,8 +69,9 @@ export default function ScheduleView() {
     );
   }
 
-  const schedule = getScheduleForDay(selectedDay, lunchWave);
   const isToday = now.getDay() === selectedDay;
+  const scheduleDay = isToday ? getEffectiveDayOfWeek(now) : selectedDay;
+  const schedule = getScheduleForDay(scheduleDay, lunchWave);
   const currentPeriod = isToday ? getCurrentPeriod(schedule, now) : null;
 
   return (

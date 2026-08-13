@@ -17,7 +17,7 @@ const NO_SCHOOL_DATES = [
   "2026-04-13",
 ];
 
-const EIGHT_PERIOD_OVERRIDES = [];
+const EIGHT_PERIOD_OVERRIDES = ["2026-08-13"];
 
 const MONDAY_BEFORE = [
   { name: "1st Period", start: "07:45", end: "08:30" },

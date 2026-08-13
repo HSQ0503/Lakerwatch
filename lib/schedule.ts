@@ -7,7 +7,7 @@ export type Period = {
 export type DayType = "monday" | "odd" | "even";
 export type LunchWave = "9/10" | "11/12";
 
-export const EIGHT_PERIOD_OVERRIDES: string[] = [];
+export const EIGHT_PERIOD_OVERRIDES: string[] = ["2026-08-13"];
 
 export const NO_SCHOOL_DATES: string[] = [
   // Labor Day
