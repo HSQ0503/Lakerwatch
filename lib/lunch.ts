@@ -49,6 +49,8 @@ export type LunchDayMenu = {
 
 // --- Utilities ---
 
+export const SCHOOL_TIME_ZONE = "America/New_York";
+
 const DAY_NAMES = [
   "Sunday",
   "Monday",
@@ -59,17 +61,77 @@ const DAY_NAMES = [
   "Saturday",
 ];
 
-export function getWeekSunday(date: Date): string {
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay());
-  return formatLunchDate(d);
+const lunchDateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: SCHOOL_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const LUNCH_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function parseLunchDate(dateStr: string) {
+  const match = LUNCH_DATE_PATTERN.exec(dateStr);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatUtcDate(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+  const day = date.getUTCDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function isLunchDate(dateStr: string): boolean {
+  return parseLunchDate(dateStr) !== null;
+}
+
+export function shiftLunchDate(dateStr: string, days: number): string {
+  const date = parseLunchDate(dateStr);
+  if (!date) throw new Error(`Invalid lunch date: ${dateStr}`);
+
+  date.setUTCDate(date.getUTCDate() + days);
+  return formatUtcDate(date);
+}
+
+export function getWeekSundayFromDate(dateStr: string): string {
+  const date = parseLunchDate(dateStr);
+  if (!date) throw new Error(`Invalid lunch date: ${dateStr}`);
+
+  date.setUTCDate(date.getUTCDate() - date.getUTCDay());
+  return formatUtcDate(date);
+}
+
+export function getWeekSunday(date: Date = new Date()): string {
+  return getWeekSundayFromDate(formatLunchDate(date));
 }
 
 export function formatLunchDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = (date.getMonth() + 1).toString().padStart(2, "0");
-  const d = date.getDate().toString().padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  const parts = lunchDateFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new Error("Unable to format lunch date");
+  }
+
+  return `${year}-${month}-${day}`;
 }
 
 export function getDayName(dateStr: string): string {

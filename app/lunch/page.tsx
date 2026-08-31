@@ -24,26 +24,41 @@ export default function LunchPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/lunch")
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12_000);
+    let active = true;
+
+    fetch("/api/lunch", { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
       })
       .then((data: { days: FlikDay[] }) => {
+        if (!active) return;
+
         const wd = getWeekdayDays(data.days);
-        setWeekdays(wd);
+        const hasMenuItems = wd.some((day) => parseFlikDay(day).length > 0);
+        setWeekdays(hasMenuItems ? wd : []);
 
         // Default to today if it's a weekday
         const today = formatLunchDate(new Date());
         const todayIdx = wd.findIndex((d) => d.date === today);
         if (todayIdx !== -1) setSelectedIdx(todayIdx);
-
-        setLoading(false);
       })
       .catch(() => {
+        if (!active) return;
         setError(true);
-        setLoading(false);
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+        if (active) setLoading(false);
       });
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   if (!mounted || loading) {
