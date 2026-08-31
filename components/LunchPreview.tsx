@@ -14,12 +14,18 @@ export default function LunchPreview() {
   const [subtitle, setSubtitle] = useState("Loading...");
 
   useEffect(() => {
-    fetch("/api/lunch")
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12_000);
+    let active = true;
+
+    fetch("/api/lunch", { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
       })
       .then((data: { days: FlikDay[] }) => {
+        if (!active) return;
+
         const today = formatLunchDate(new Date());
         const weekdays = getWeekdayDays(data.days);
         const todayMenu = weekdays.find((d) => d.date === today);
@@ -52,9 +58,19 @@ export default function LunchPreview() {
         );
       })
       .catch(() => {
+        if (!active) return;
         setHeadline("Menu unavailable");
         setSubtitle("View on FLIK Dining");
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
       });
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   return (
