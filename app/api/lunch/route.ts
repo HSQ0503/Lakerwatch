@@ -6,9 +6,10 @@ import {
   isLunchDate,
 } from "@/lib/lunch";
 import {
+  canSyncLunchWeekOnDemand,
   FlikMenuError,
   shouldRefreshLunchMenu,
-  syncLunchWeek,
+  syncLunchWeekOnDemand,
 } from "@/lib/lunch-server";
 import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
@@ -21,7 +22,8 @@ export async function GET(request: NextRequest) {
   }
 
   const dateParam = request.nextUrl.searchParams.get("date");
-  const targetDate = dateParam ?? formatLunchDate(new Date());
+  const today = formatLunchDate(new Date());
+  const targetDate = dateParam ?? today;
   if (!isLunchDate(targetDate)) {
     return NextResponse.json(
       { error: "Date must use YYYY-MM-DD format" },
@@ -30,13 +32,22 @@ export async function GET(request: NextRequest) {
   }
 
   const weekStart = getWeekSundayFromDate(targetDate);
+  const currentWeek = getWeekSundayFromDate(today);
+  const canSyncOnDemand = canSyncLunchWeekOnDemand(weekStart, currentWeek);
   let menu = await prisma.lunchMenu.findUnique({
     where: { weekStart },
   });
 
-  if (!menu || shouldRefreshLunchMenu(menu)) {
+  if (!menu && !canSyncOnDemand) {
+    return NextResponse.json(
+      { error: "No menu available for this week" },
+      { status: 404 },
+    );
+  }
+
+  if (canSyncOnDemand && (!menu || shouldRefreshLunchMenu(menu))) {
     try {
-      menu = await syncLunchWeek(weekStart);
+      menu = await syncLunchWeekOnDemand(weekStart);
     } catch (error) {
       console.error(`Lunch on-demand sync failed for ${weekStart}:`, error);
 

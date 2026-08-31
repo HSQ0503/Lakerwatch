@@ -10,6 +10,7 @@ import {
   shiftLunchDate,
 } from "./lunch";
 import {
+  canSyncLunchWeekOnDemand,
   getFlikWeekUrl,
   hasPublishedLunchItems,
   shouldRefreshLunchMenu,
@@ -84,6 +85,25 @@ test("builds the current FLIK endpoint and rejects non-Sunday dates", () => {
     "https://wps.api.flikisdining.com/menu/api/weeks/school/windermere-prep-school/menu-type/lunch/2026/8/30/",
   );
   assert.throws(() => getFlikWeekUrl("2026-08-31"));
+});
+
+test("limits public write-through syncing to current and next week", () => {
+  assert.equal(
+    canSyncLunchWeekOnDemand("2026-08-30", "2026-08-30"),
+    true,
+  );
+  assert.equal(
+    canSyncLunchWeekOnDemand("2026-09-06", "2026-08-30"),
+    true,
+  );
+  assert.equal(
+    canSyncLunchWeekOnDemand("2026-08-23", "2026-08-30"),
+    false,
+  );
+  assert.equal(
+    canSyncLunchWeekOnDemand("2036-08-31", "2026-08-30"),
+    false,
+  );
 });
 
 test("retries empty menus sooner than published menus", () => {

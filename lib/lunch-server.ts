@@ -4,6 +4,7 @@ import {
   type FlikDay,
   getWeekSundayFromDate,
   isLunchDate,
+  shiftLunchDate,
 } from "@/lib/lunch";
 
 const FLIK_BASE_URL =
@@ -11,6 +12,10 @@ const FLIK_BASE_URL =
 const FLIK_FETCH_TIMEOUT_MS = 10_000;
 const EMPTY_MENU_RETRY_MS = 15 * 60 * 1_000;
 const PUBLISHED_MENU_REFRESH_MS = 6 * 60 * 60 * 1_000;
+const FAILED_ON_DEMAND_RETRY_MS = 60 * 1_000;
+
+const inFlightSyncs = new Map<string, Promise<LunchMenu>>();
+const failedOnDemandSyncs = new Map<string, number>();
 
 export class FlikMenuError extends Error {
   constructor(
@@ -57,6 +62,16 @@ export function shouldRefreshLunchMenu(
   return now.getTime() - menu.updatedAt.getTime() >= refreshAfter;
 }
 
+export function canSyncLunchWeekOnDemand(
+  weekStart: string,
+  currentWeek: string,
+): boolean {
+  return (
+    weekStart === currentWeek ||
+    weekStart === shiftLunchDate(currentWeek, 7)
+  );
+}
+
 export function getFlikWeekUrl(weekStart: string): string {
   if (
     !isLunchDate(weekStart) ||
@@ -96,7 +111,7 @@ export async function fetchFlikWeek(weekStart: string): Promise<FlikDay[]> {
   return days;
 }
 
-export async function syncLunchWeek(weekStart: string): Promise<LunchMenu> {
+async function fetchAndPersistLunchWeek(weekStart: string): Promise<LunchMenu> {
   const days = await fetchFlikWeek(weekStart);
 
   return prisma.lunchMenu.upsert({
@@ -107,4 +122,39 @@ export async function syncLunchWeek(weekStart: string): Promise<LunchMenu> {
       days: days as unknown as Prisma.InputJsonValue,
     },
   });
+}
+
+export function syncLunchWeek(weekStart: string): Promise<LunchMenu> {
+  const existingSync = inFlightSyncs.get(weekStart);
+  if (existingSync) return existingSync;
+
+  const sync = fetchAndPersistLunchWeek(weekStart).finally(() => {
+    if (inFlightSyncs.get(weekStart) === sync) {
+      inFlightSyncs.delete(weekStart);
+    }
+  });
+
+  inFlightSyncs.set(weekStart, sync);
+  return sync;
+}
+
+export async function syncLunchWeekOnDemand(
+  weekStart: string,
+): Promise<LunchMenu> {
+  const retryAfter = failedOnDemandSyncs.get(weekStart);
+  if (retryAfter && retryAfter > Date.now()) {
+    throw new FlikMenuError("FLIK retry is temporarily paused");
+  }
+
+  try {
+    const menu = await syncLunchWeek(weekStart);
+    failedOnDemandSyncs.delete(weekStart);
+    return menu;
+  } catch (error) {
+    failedOnDemandSyncs.set(
+      weekStart,
+      Date.now() + FAILED_ON_DEMAND_RETRY_MS,
+    );
+    throw error;
+  }
 }

@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     currentWeek,
     shiftLunchDate(currentWeek, 7),
   ]);
-  const success = results.some((result) => result.status === "synced");
+  const success = results[0]?.status === "synced";
 
   return NextResponse.json(
     {
