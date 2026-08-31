@@ -69,6 +69,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  if (!menu) {
+    return NextResponse.json(
+      { error: "Lunch menu is temporarily unavailable" },
+      { status: 503 },
+    );
+  }
+
   return NextResponse.json({
     weekStart: menu.weekStart,
     days: menu.days,
