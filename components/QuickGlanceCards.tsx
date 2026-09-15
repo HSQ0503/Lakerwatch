@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { filterUpcoming, findNextNoSchool, daysUntil, type SchoolEvent } from "@/lib/events";
+import {
+  filterUpcoming,
+  findNextNoSchool,
+  daysUntil,
+  formatEventDateRange,
+  type SchoolEvent,
+} from "@/lib/events";
 import LunchPreview from "@/components/LunchPreview";
 
 type TodoItem = { text: string; completed: boolean };
@@ -20,22 +26,6 @@ function readActiveTodos(): TodoItem[] {
     // ignore parse errors
   }
   return [];
-}
-
-function formatShortDate(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function formatDateRange(startDate: string, endDate?: string | null): string {
-  const start = formatShortDate(startDate);
-  if (!endDate) return start;
-  const startD = new Date(startDate + "T00:00:00");
-  const endD = new Date(endDate + "T00:00:00");
-  if (startD.getMonth() === endD.getMonth()) {
-    return `${start}\u2013${endD.getDate()}`;
-  }
-  return `${start} \u2013 ${formatShortDate(endDate)}`;
 }
 
 export default function QuickGlanceCards() {
@@ -72,7 +62,7 @@ export default function QuickGlanceCards() {
   const eventName = eventTarget?.name ?? "No upcoming events";
   const eventDays = eventTarget ? daysUntil(eventTarget.date) : null;
   const eventDateRange = eventTarget
-    ? formatDateRange(eventTarget.date, eventTarget.endDate)
+    ? formatEventDateRange(eventTarget)
     : null;
 
   return (

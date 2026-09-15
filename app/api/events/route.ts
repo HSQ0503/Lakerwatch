@@ -5,6 +5,14 @@ import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
 export async function GET() {
   const events = await prisma.schoolEvent.findMany({
     orderBy: { date: "asc" },
+    select: {
+      id: true,
+      date: true,
+      name: true,
+      description: true,
+      type: true,
+      endDate: true,
+    },
   });
   return NextResponse.json(events);
 }
@@ -14,9 +22,9 @@ export async function POST(request: NextRequest) {
   if (!admin) return unauthorizedResponse();
 
   const body = await request.json();
-  const { date, name, type, endDate } = body;
+  const { date, name, description, type, endDate } = body;
 
-  if (!date || !name || !type) {
+  if (!date || !name || !description || !type) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -26,7 +34,13 @@ export async function POST(request: NextRequest) {
   }
 
   const event = await prisma.schoolEvent.create({
-    data: { date, name, type, endDate: endDate || null },
+    data: {
+      date,
+      name,
+      description,
+      type,
+      endDate: endDate || null,
+    },
   });
   return NextResponse.json(event, { status: 201 });
 }

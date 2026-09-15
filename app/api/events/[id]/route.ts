@@ -11,7 +11,7 @@ export async function PUT(
   if (!admin) return unauthorizedResponse();
 
   const body = await request.json();
-  const { date, name, type, endDate } = body;
+  const { date, name, description, type, endDate } = body;
 
   const validTypes = ["no-school", "early-dismissal", "event", "exam", "deadline"];
   if (type && !validTypes.includes(type)) {
@@ -23,6 +23,9 @@ export async function PUT(
     data: {
       ...(date && { date }),
       ...(name && { name }),
+      ...(description !== undefined && {
+        description: description || null,
+      }),
       ...(type && { type }),
       endDate: endDate !== undefined ? endDate || null : undefined,
     },

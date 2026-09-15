@@ -1,8 +1,12 @@
-import { PrismaClient } from "../lib/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
+import {
+  WPS_2026_2027_EVENTS,
+  WPS_2026_2027_SOURCE_PREFIX,
+} from "../lib/wpsCalendar2026";
 
 const prisma = new PrismaClient();
 
-const EVENTS = [
+const LEGACY_EVENTS = [
   // AUGUST 2025
   { date: "2025-08-07", name: "Student Group Activity Day (Athletics, Fine Arts, SGA)", type: "event" },
   { date: "2025-08-08", name: "HS New Student/Family Orientation", type: "event" },
@@ -59,20 +63,70 @@ const EVENTS = [
 async function main() {
   console.log("Seeding database...");
 
-  await prisma.schoolEvent.deleteMany();
+  let created = 0;
+  let updated = 0;
 
-  const result = await prisma.schoolEvent.createMany({
-    data: EVENTS.map((e) => ({
-      date: e.date,
-      name: e.name,
-      type: e.type,
-      endDate: (e as { endDate?: string }).endDate ?? null,
-    })),
-  });
+  // Keep the original calendar available in fresh databases without deleting
+  // events that administrators have added or edited.
+  for (const event of LEGACY_EVENTS) {
+    const existing = await prisma.schoolEvent.findFirst({
+      where: { date: event.date, name: event.name },
+    });
+    if (existing) continue;
 
-  console.log(`Seeded ${result.count} events`);
+    await prisma.schoolEvent.create({
+      data: {
+        date: event.date,
+        name: event.name,
+        type: event.type,
+        endDate: (event as { endDate?: string }).endDate ?? null,
+      },
+    });
+    created++;
+  }
+
+  // Official events have stable source keys, so this seed can be run again to
+  // apply calendar corrections without creating duplicates.
+  for (const event of WPS_2026_2027_EVENTS) {
+    const sourceKey = `${WPS_2026_2027_SOURCE_PREFIX}:${event.key}`;
+    const data = {
+      date: event.date,
+      name: event.name,
+      description: event.description,
+      type: event.type,
+      endDate: event.endDate ?? null,
+      sourceKey,
+    };
+
+    let existing = await prisma.schoolEvent.findFirst({
+      where: { sourceKey },
+    });
+
+    // Adopt an exact pre-existing admin entry on the first seed run.
+    existing ??= await prisma.schoolEvent.findFirst({
+      where: { date: event.date, name: event.name },
+    });
+
+    if (existing) {
+      await prisma.schoolEvent.update({
+        where: { id: existing.id },
+        data,
+      });
+      updated++;
+    } else {
+      await prisma.schoolEvent.create({ data });
+      created++;
+    }
+  }
+
+  console.log(
+    `Calendar seed complete: ${created} created, ${updated} updated, ${WPS_2026_2027_EVENTS.length} official 2026-2027 events synced`,
+  );
 }
 
 main()
-  .catch(console.error)
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
   .finally(() => prisma.$disconnect());

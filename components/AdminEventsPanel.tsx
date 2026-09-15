@@ -3,7 +3,19 @@
 import { useState, useCallback, useEffect } from "react";
 import AdminEventForm from "@/components/AdminEventForm";
 import CalendarView from "@/components/CalendarView";
-import type { SchoolEvent } from "@/lib/events";
+import {
+  formatSchoolDate,
+  getSchoolDateKey,
+  type SchoolEvent,
+} from "@/lib/events";
+
+type EventFormData = {
+  date: string;
+  name: string;
+  description: string;
+  type: SchoolEvent["type"];
+  endDate: string;
+};
 
 const TYPE_LABELS: Record<string, string> = {
   "no-school": "No School",
@@ -22,8 +34,11 @@ const TYPE_BADGE: Record<string, string> = {
 };
 
 function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + "T12:00:00");
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return formatSchoolDate(dateStr, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export default function AdminEventsPanel() {
@@ -38,12 +53,11 @@ export default function AdminEventsPanel() {
   const [prefillEndDate, setPrefillEndDate] = useState<string>("");
 
   const fetchEvents = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/events");
       const data: SchoolEvent[] = await res.json();
       setAllEvents(data);
-      const today = new Date().toISOString().split("T")[0];
+      const today = getSchoolDateKey();
       setEvents(data.filter((e) => (e.endDate ?? e.date) >= today));
     } catch {
       // ignore
@@ -51,9 +65,28 @@ export default function AdminEventsPanel() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => {
+    let active = true;
 
-  async function handleAdd(data: { date: string; name: string; type: SchoolEvent["type"]; endDate: string }) {
+    fetch("/api/events")
+      .then((res) => res.json())
+      .then((data: SchoolEvent[]) => {
+        if (!active) return;
+        const today = getSchoolDateKey();
+        setAllEvents(data);
+        setEvents(data.filter((event) => (event.endDate ?? event.date) >= today));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleAdd(data: EventFormData) {
     const res = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -62,7 +95,7 @@ export default function AdminEventsPanel() {
     if (res.ok) { setShowAddForm(false); setPrefillDate(""); setPrefillEndDate(""); fetchEvents(); }
   }
 
-  async function handleEdit(data: { date: string; name: string; type: SchoolEvent["type"]; endDate: string }) {
+  async function handleEdit(data: EventFormData) {
     if (!editingId) return;
     const res = await fetch(`/api/events/${editingId}`, {
       method: "PUT",
@@ -205,6 +238,11 @@ export default function AdminEventsPanel() {
                       {formatDate(event.date)}
                       {event.endDate && ` – ${formatDate(event.endDate)}`}
                     </p>
+                    {event.description ? (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted dark:text-dark-muted">
+                        {event.description}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="flex shrink-0 items-center gap-1.5">

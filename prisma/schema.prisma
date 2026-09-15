@@ -8,13 +8,15 @@ datasource db {
 }
 
 model SchoolEvent {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  date      String // "YYYY-MM-DD"
-  name      String
-  type      String // "no-school" | "early-dismissal" | "event" | "exam" | "deadline"
-  endDate   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  date        String // America/New_York calendar date, "YYYY-MM-DD"
+  name        String
+  description String?
+  type        String // "no-school" | "early-dismissal" | "event" | "exam" | "deadline"
+  endDate     String?
+  sourceKey   String? // Stable key for idempotently seeded official calendar events
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Admin {

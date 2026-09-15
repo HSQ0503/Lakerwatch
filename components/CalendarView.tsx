@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { type SchoolEvent, TYPE_STYLES } from "@/lib/events";
+import {
+  formatSchoolDate,
+  getSchoolDateKey,
+  type SchoolEvent,
+  TYPE_STYLES,
+} from "@/lib/events";
 
 type CalendarViewProps = {
   events: SchoolEvent[];
   interactive?: boolean;
   onDateClick?: (date: string) => void;
   onDateRangeSelect?: (start: string, end: string) => void;
+  onEventClick?: (event: SchoolEvent) => void;
 };
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -35,21 +41,21 @@ function generateCalendarDays(year: number, month: number): (Date | null)[] {
 function buildEventMap(events: SchoolEvent[]): Map<string, SchoolEvent[]> {
   const map = new Map<string, SchoolEvent[]>();
   for (const event of events) {
-    const start = new Date(event.date + "T12:00:00");
-    const end = event.endDate ? new Date(event.endDate + "T12:00:00") : start;
+    const start = new Date(`${event.date}T12:00:00Z`);
+    const end = event.endDate
+      ? new Date(`${event.endDate}T12:00:00Z`)
+      : start;
     const cursor = new Date(start);
     while (cursor <= end) {
-      const key = formatDateKey(cursor);
+      const key = cursor.toISOString().slice(0, 10);
       const existing = map.get(key) || [];
       existing.push(event);
       map.set(key, existing);
-      cursor.setDate(cursor.getDate() + 1);
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
   }
   return map;
 }
-
-const MAX_VISIBLE = 3;
 
 function isInRange(dateKey: string, start: string | null, end: string | null): boolean {
   if (!start || !end) return false;
@@ -58,10 +64,16 @@ function isInRange(dateKey: string, start: string | null, end: string | null): b
   return dateKey >= lo && dateKey <= hi;
 }
 
-export default function CalendarView({ events, interactive, onDateClick, onDateRangeSelect }: CalendarViewProps) {
+export default function CalendarView({
+  events,
+  interactive,
+  onDateClick,
+  onDateRangeSelect,
+  onEventClick,
+}: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
+    const [year, month] = getSchoolDateKey().split("-").map(Number);
+    return { year, month: month - 1 };
   });
 
   const [dragStart, setDragStart] = useState<string | null>(null);
@@ -74,13 +86,12 @@ export default function CalendarView({ events, interactive, onDateClick, onDateR
     [currentMonth.year, currentMonth.month],
   );
 
-  const todayKey = formatDateKey(new Date());
+  const todayKey = getSchoolDateKey();
 
-  const monthLabel = new Date(
-    currentMonth.year,
-    currentMonth.month,
-    1,
-  ).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = formatSchoolDate(
+    `${currentMonth.year}-${(currentMonth.month + 1).toString().padStart(2, "0")}-01`,
+    { month: "long", year: "numeric" },
+  );
 
   function navigateMonth(delta: number) {
     setCurrentMonth((prev) => {
@@ -143,7 +154,9 @@ export default function CalendarView({ events, interactive, onDateClick, onDateR
       {/* Month navigation */}
       <div className="flex items-center justify-between">
         <button
+          type="button"
           onClick={() => navigateMonth(-1)}
+          aria-label="Previous month"
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-red/30 hover:text-text dark:border-dark-border dark:text-dark-muted dark:hover:text-dark-text"
         >
           <svg
@@ -164,7 +177,9 @@ export default function CalendarView({ events, interactive, onDateClick, onDateR
           {monthLabel}
         </h3>
         <button
+          type="button"
           onClick={() => navigateMonth(1)}
+          aria-label="Next month"
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-red/30 hover:text-text dark:border-dark-border dark:text-dark-muted dark:hover:text-dark-text"
         >
           <svg
@@ -232,23 +247,41 @@ export default function CalendarView({ events, interactive, onDateClick, onDateR
                       {day.getDate()}
                     </span>
                     <div className="mt-1 space-y-1">
-                      {cellEvents.slice(0, MAX_VISIBLE).map((event, j) => (
-                        <div
-                          key={event.id || `${event.date}-${j}`}
-                          className="flex items-center gap-1.5"
-                        >
-                          <span
-                            className={`h-2 w-2 flex-shrink-0 rounded-full ${TYPE_STYLES[event.type].dot}`}
-                          />
-                          <span className="hidden truncate text-xs leading-snug text-text sm:inline dark:text-dark-text">
-                            {event.name}
-                          </span>
-                        </div>
-                      ))}
-                      {cellEvents.length > MAX_VISIBLE && (
-                        <span className="text-[11px] text-muted dark:text-dark-muted">
-                          +{cellEvents.length - MAX_VISIBLE} more
-                        </span>
+                      {cellEvents.map((event, j) =>
+                        onEventClick ? (
+                          <button
+                            type="button"
+                            key={event.id || `${event.date}-${event.name}-${j}`}
+                            onMouseDown={(mouseEvent) =>
+                              mouseEvent.stopPropagation()
+                            }
+                            onClick={(clickEvent) => {
+                              clickEvent.stopPropagation();
+                              onEventClick(event);
+                            }}
+                            aria-label={`Open details for ${event.name}`}
+                            className="flex w-full items-center gap-1.5 rounded text-left transition-colors hover:bg-red/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red/40"
+                          >
+                            <span
+                              className={`h-2 w-2 flex-shrink-0 rounded-full ${TYPE_STYLES[event.type].dot}`}
+                            />
+                            <span className="hidden truncate text-xs leading-snug text-text sm:inline dark:text-dark-text">
+                              {event.name}
+                            </span>
+                          </button>
+                        ) : (
+                          <div
+                            key={event.id || `${event.date}-${event.name}-${j}`}
+                            className="flex items-center gap-1.5"
+                          >
+                            <span
+                              className={`h-2 w-2 flex-shrink-0 rounded-full ${TYPE_STYLES[event.type].dot}`}
+                            />
+                            <span className="hidden truncate text-xs leading-snug text-text sm:inline dark:text-dark-text">
+                              {event.name}
+                            </span>
+                          </div>
+                        ),
                       )}
                     </div>
                   </>
