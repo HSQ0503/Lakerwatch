@@ -7,6 +7,7 @@ import {
   isNoSchoolDate,
   formatDateStr,
   getEffectiveDayOfWeek,
+  getSchoolDayOfWeek,
   getNextSchoolDay,
 } from "@/lib/schedule";
 import { getDevDate } from "@/lib/devTime";
@@ -40,7 +41,7 @@ export default function DayStatusHero({ isEarlyDismissal = false }: { isEarlyDis
   }
 
   const now = getDevDate(new Date());
-  const dayOfWeek = now.getDay();
+  const dayOfWeek = getSchoolDayOfWeek(now);
   const dateStr = formatDateStr(now);
   const dayName = DAY_NAMES[dayOfWeek];
 

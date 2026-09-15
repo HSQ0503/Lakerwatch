@@ -14,6 +14,7 @@ import {
   getPassingTimeInfo,
   formatTime,
   getEffectiveDayOfWeek,
+  getSchoolDayOfWeek,
   isNoSchoolDate,
   formatDateStr,
   getNextSchoolDay,
@@ -65,7 +66,7 @@ export default function PeriodCountdown({
   }
 
   const dateStr = formatDateStr(now);
-  const dayOfWeek = now.getDay();
+  const dayOfWeek = getSchoolDayOfWeek(now);
 
   if (dayOfWeek === 0 || dayOfWeek === 6 || isNoSchoolDate(dateStr)) {
     return null;

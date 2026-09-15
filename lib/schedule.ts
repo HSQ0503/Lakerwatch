@@ -7,7 +7,19 @@ export type Period = {
 export type DayType = "monday" | "odd" | "even";
 export type LunchWave = "9/10" | "11/12";
 
-export const EIGHT_PERIOD_OVERRIDES: string[] = ["2026-08-13"];
+export const SCHOOL_TIME_ZONE = "America/New_York";
+
+export const EIGHT_PERIOD_OVERRIDES: string[] = [
+  "2026-08-13",
+  "2026-09-17",
+];
+
+const SCHOOL_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: SCHOOL_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 export const NO_SCHOOL_DATES: string[] = [
   // Labor Day
@@ -197,10 +209,14 @@ export function getDayTypeLabel(dayType: DayType): string {
   }
 }
 export function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = (date.getMonth() + 1).toString().padStart(2, "0");
-  const d = date.getDate().toString().padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  const parts = SCHOOL_DATE_FORMATTER.formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+export function getSchoolDayOfWeek(date: Date): number {
+  const [year, month, day] = formatDateStr(date).split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
 export function isNoSchoolDate(dateStr: string): boolean {
@@ -214,7 +230,7 @@ export function isEightPeriodOverride(dateStr: string): boolean {
 export function getEffectiveDayOfWeek(date: Date): number {
   const dateStr = formatDateStr(date);
   if (isEightPeriodOverride(dateStr)) return 1;
-  return date.getDay();
+  return getSchoolDayOfWeek(date);
 }
 
 export function getScheduleForDay(
@@ -344,11 +360,11 @@ export function getNextSchoolDay(from: Date): {
   // Check up to 30 days ahead to skip long breaks
   for (let i = 0; i < 30; i++) {
     next.setDate(next.getDate() + 1);
-    const dow = next.getDay();
+    const dow = getSchoolDayOfWeek(next);
     if (dow === 0 || dow === 6) continue;
     const dateStr = formatDateStr(next);
     if (isNoSchoolDate(dateStr)) continue;
-    const effectiveDow = isEightPeriodOverride(dateStr) ? 1 : dow;
+    const effectiveDow = getEffectiveDayOfWeek(next);
     const dayType = getDayType(effectiveDow);
     if (!dayType) continue;
     return {
