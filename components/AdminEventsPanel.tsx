@@ -53,7 +53,6 @@ export default function AdminEventsPanel() {
   const [prefillEndDate, setPrefillEndDate] = useState<string>("");
 
   const fetchEvents = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/events");
       const data: SchoolEvent[] = await res.json();
