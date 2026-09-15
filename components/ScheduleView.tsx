@@ -12,6 +12,7 @@ import {
   getPeriodDuration,
   timeToMinutes,
   getEffectiveDayOfWeek,
+  getSchoolDayOfWeek,
   type LunchWave,
 } from "@/lib/schedule";
 import { getDevDate } from "@/lib/devTime";
@@ -37,7 +38,7 @@ function formatCountdown(seconds: number): string {
 
 function getInitialDay(): number {
   if (typeof window === "undefined") return 1;
-  const today = new Date().getDay();
+  const today = getSchoolDayOfWeek(new Date());
   return today >= 1 && today <= 5 ? today : 1;
 }
 
@@ -69,7 +70,8 @@ export default function ScheduleView() {
     );
   }
 
-  const isToday = now.getDay() === selectedDay;
+  const today = getSchoolDayOfWeek(now);
+  const isToday = today === selectedDay;
   const scheduleDay = isToday ? getEffectiveDayOfWeek(now) : selectedDay;
   const schedule = getScheduleForDay(scheduleDay, lunchWave);
   const currentPeriod = isToday ? getCurrentPeriod(schedule, now) : null;
@@ -106,7 +108,7 @@ export default function ScheduleView() {
               selectedDay === tab.dayOfWeek
                 ? "bg-red text-white"
                 : "text-muted dark:text-dark-muted hover:text-text dark:hover:text-dark-text"
-            } ${isToday && tab.dayOfWeek === now.getDay() ? "ring-1 ring-red/30" : ""}`}
+            } ${isToday && tab.dayOfWeek === today ? "ring-1 ring-red/30" : ""}`}
           >
             {tab.label}
           </button>
