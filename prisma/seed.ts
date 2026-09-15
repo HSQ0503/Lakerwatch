@@ -1,4 +1,4 @@
-import { PrismaClient } from "../lib/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   WPS_2026_2027_EVENTS,
   WPS_2026_2027_SOURCE_PREFIX,
