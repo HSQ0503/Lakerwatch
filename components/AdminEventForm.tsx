@@ -7,7 +7,13 @@ type AdminEventFormProps = {
   event?: SchoolEvent;
   initialDate?: string;
   initialEndDate?: string;
-  onSave: (data: { date: string; name: string; type: SchoolEvent["type"]; endDate: string }) => void;
+  onSave: (data: {
+    date: string;
+    name: string;
+    description: string;
+    type: SchoolEvent["type"];
+    endDate: string;
+  }) => void;
   onCancel: () => void;
 };
 
@@ -21,14 +27,21 @@ const EVENT_TYPES: { value: SchoolEvent["type"]; label: string }[] = [
 
 export default function AdminEventForm({ event, initialDate, initialEndDate, onSave, onCancel }: AdminEventFormProps) {
   const [name, setName] = useState(event?.name ?? "");
+  const [description, setDescription] = useState(event?.description ?? "");
   const [date, setDate] = useState(event?.date ?? initialDate ?? "");
   const [type, setType] = useState<SchoolEvent["type"]>(event?.type ?? "event");
   const [endDate, setEndDate] = useState(event?.endDate ?? initialEndDate ?? "");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !date) return;
-    onSave({ date, name: name.trim(), type, endDate });
+    if (!name.trim() || !description.trim() || !date) return;
+    onSave({
+      date,
+      name: name.trim(),
+      description: description.trim(),
+      type,
+      endDate,
+    });
   }
 
   const inputClass =
@@ -46,6 +59,20 @@ export default function AdminEventForm({ event, initialDate, initialEndDate, onS
           onChange={(e) => setName(e.target.value)}
           className={inputClass}
           placeholder="e.g. Spring Break"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-text dark:text-dark-text">
+          Description
+        </label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className={inputClass}
+          placeholder="What students need to know about this event"
+          rows={4}
           required
         />
       </div>

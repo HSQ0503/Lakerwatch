@@ -2,29 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { type SchoolEvent, daysUntil, TYPE_STYLES } from "@/lib/events";
+import {
+  type SchoolEvent,
+  daysUntil,
+  formatEventDateRange,
+  formatSchoolDate,
+  getSchoolDateKey,
+  TYPE_STYLES,
+} from "@/lib/events";
 import CalendarView from "@/components/CalendarView";
-
-function formatEventDate(event: SchoolEvent): string {
-  const date = new Date(event.date + "T12:00:00");
-  const options: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-  };
-  const start = date.toLocaleDateString("en-US", options);
-
-  if (event.endDate) {
-    const end = new Date(event.endDate + "T12:00:00");
-    const endDay = end.toLocaleDateString("en-US", { day: "numeric" });
-    return `${start}\u2013${endDay}`;
-  }
-
-  return start;
-}
+import EventDetailsDialog from "@/components/EventDetailsDialog";
 
 function getMonthYear(dateStr: string): string {
-  const date = new Date(dateStr + "T12:00:00");
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  return formatSchoolDate(dateStr, { month: "long", year: "numeric" });
 }
 
 export default function EventsList() {
@@ -33,6 +23,7 @@ export default function EventsList() {
   const [loading, setLoading] = useState(true);
   const [showPast, setShowPast] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "calendar">("calendar");
+  const [selectedEvent, setSelectedEvent] = useState<SchoolEvent | null>(null);
 
   useEffect(() => {
     fetch("/api/events")
@@ -54,9 +45,7 @@ export default function EventsList() {
     );
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
+  const todayStr = getSchoolDateKey();
 
   const filteredEvents = showPast
     ? events
@@ -106,8 +95,13 @@ export default function EventsList() {
         </div>
       </div>
 
+      <p className="rounded-xl border border-border bg-white px-4 py-3 text-sm text-muted dark:border-dark-border dark:bg-dark-surface dark:text-dark-muted">
+        Dates will be added and are subject to change. Open an event for details,
+        and check official WPS communications for the latest updates.
+      </p>
+
       {viewMode === "calendar" ? (
-        <CalendarView events={events} />
+        <CalendarView events={events} onEventClick={setSelectedEvent} />
       ) : (
         <>
           {Object.entries(grouped).map(([month, monthEvents]) => (
@@ -118,13 +112,15 @@ export default function EventsList() {
               <div className="space-y-2">
                 {monthEvents.map((event, i) => {
                   const days = daysUntil(event.date);
-                  const isPast = days < 0;
+                  const isPast = (event.endDate ?? event.date) < todayStr;
                   const style = TYPE_STYLES[event.type];
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={event.id || `${event.date}-${i}`}
-                      className={`rounded-xl border p-4 ${style.border} ${style.bg} ${isPast ? "opacity-50" : ""}`}
+                      onClick={() => setSelectedEvent(event)}
+                      className={`w-full rounded-xl border p-4 text-left transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red/40 ${style.border} ${style.bg} ${isPast ? "opacity-50" : ""}`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3">
@@ -134,7 +130,7 @@ export default function EventsList() {
                           <div>
                             <p className="font-medium text-text dark:text-dark-text">{event.name}</p>
                             <p className="text-sm text-muted dark:text-dark-muted">
-                              {formatEventDate(event)}
+                              {formatEventDateRange(event)}
                             </p>
                           </div>
                         </div>
@@ -148,7 +144,7 @@ export default function EventsList() {
                           </span>
                         )}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -160,6 +156,11 @@ export default function EventsList() {
           )}
         </>
       )}
+
+      <EventDetailsDialog
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+      />
     </div>
   );
 }
