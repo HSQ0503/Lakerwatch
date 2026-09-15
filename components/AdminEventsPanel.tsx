@@ -65,7 +65,26 @@ export default function AdminEventsPanel() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/events")
+      .then((res) => res.json())
+      .then((data: SchoolEvent[]) => {
+        if (!active) return;
+        const today = getSchoolDateKey();
+        setAllEvents(data);
+        setEvents(data.filter((event) => (event.endDate ?? event.date) >= today));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleAdd(data: EventFormData) {
     const res = await fetch("/api/events", {
