@@ -15,6 +15,10 @@ const FLIK_URL =
   "https://wps.flikisdining.com/menu/windermere-prep-school/lunch";
 
 const SHORT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const priceFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
 export default function LunchPage() {
   const mounted = useHasMounted();
@@ -206,9 +210,22 @@ export default function LunchPage() {
               <div className="divide-y divide-border dark:divide-dark-border">
                 {station.items.map((item, j) => (
                   <div key={j} className="py-3 first:pt-0 last:pb-0">
-                    <p className="font-medium text-text dark:text-dark-text">
-                      {item.name}
-                    </p>
+                    <div className="flex items-baseline justify-between gap-4">
+                      <p className="min-w-0 font-medium text-text dark:text-dark-text">
+                        {item.name}
+                      </p>
+                      <span
+                        className={`shrink-0 text-right text-sm ${
+                          item.price != null
+                            ? "font-semibold tabular-nums text-text dark:text-dark-text"
+                            : "text-xs text-muted dark:text-dark-muted"
+                        }`}
+                      >
+                        {item.price != null
+                          ? priceFormatter.format(item.price)
+                          : "Price not listed"}
+                      </span>
+                    </div>
                     {item.description && (
                       <p className="mt-0.5 text-sm text-muted dark:text-dark-muted">
                         {item.description}
@@ -236,7 +253,7 @@ export default function LunchPage() {
 
       {/* Footer link */}
       <p className="mt-6 text-center text-xs text-muted dark:text-dark-muted">
-        Menu data from{" "}
+        Menu and listed prices from{" "}
         <a
           href={FLIK_URL}
           target="_blank"

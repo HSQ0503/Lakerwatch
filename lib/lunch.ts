@@ -2,6 +2,7 @@
 
 export type FlikFood = {
   name: string;
+  price?: number | null;
   description?: string | null;
   rounded_nutrition_info?: {
     calories?: number | null;
@@ -19,6 +20,7 @@ export type FlikFood = {
 export type FlikMenuItem = {
   is_section_title?: boolean;
   text?: string;
+  price?: number | null;
   food?: FlikFood | null;
 };
 
@@ -31,6 +33,7 @@ export type FlikDay = {
 
 export type LunchItem = {
   name: string;
+  price?: number;
   description?: string;
   calories?: number;
   allergens: string[];
@@ -148,8 +151,13 @@ export function parseFlikDay(day: FlikDay): LunchStation[] {
       current = { name: item.text, items: [] };
       stations.push(current);
     } else if (item.food && current) {
+      const price = item.price ?? item.food.price;
       current.items.push({
         name: item.food.name,
+        price:
+          typeof price === "number" && Number.isFinite(price) && price >= 0
+            ? price
+            : undefined,
         description: item.food.description || undefined,
         calories: item.food.rounded_nutrition_info?.calories ?? undefined,
         allergens: (item.food.icons?.food_icons ?? [])

@@ -58,6 +58,7 @@ test("preserves FLIK station, nutrition, and allergen data", () => {
       items: [
         {
           name: "Chicken Tikka Masala",
+          price: undefined,
           description: "Chicken in a tomato curry sauce",
           calories: 200,
           allergens: ["Milk", "Wheat"],
@@ -65,6 +66,40 @@ test("preserves FLIK station, nutrition, and allergen data", () => {
       ],
     },
   ]);
+});
+
+test("uses the menu price before the food price and preserves zero", () => {
+  const day: FlikDay = {
+    date: "2026-09-28",
+    menu_items: [
+      { is_section_title: true, text: "Main Entrees" },
+      { price: 1.45, food: { name: "Chicken Tikka Masala", price: 2 } },
+      { price: 0, food: { name: "Included item", price: 1 } },
+      { price: null, food: { name: "Food price fallback", price: 0.55 } },
+      { food: { name: "Food price only", price: 0 } },
+    ],
+  };
+
+  assert.deepEqual(
+    parseFlikDay(day)[0].items.map((item) => item.price),
+    [1.45, 0, 0.55, 0],
+  );
+});
+
+test("leaves missing and invalid prices unlisted", () => {
+  const day: FlikDay = {
+    date: "2026-09-28",
+    menu_items: [
+      { is_section_title: true, text: "Main Entrees" },
+      { price: null, food: { name: "Unlisted", price: null } },
+      { food: { name: "Legacy cached item" } },
+      { price: -1, food: { name: "Negative price" } },
+      { price: NaN, food: { name: "Invalid price" } },
+      { food: { name: "Infinite price", price: Infinity } },
+    ],
+  };
+
+  assert.ok(parseFlikDay(day)[0].items.every((item) => item.price === undefined));
 });
 
 test("recognizes published and empty FLIK weeks", () => {
