@@ -227,8 +227,17 @@ export function isEightPeriodOverride(dateStr: string): boolean {
   return EIGHT_PERIOD_OVERRIDES.includes(dateStr);
 }
 
+/** Date-scoped overrides: America/New_York YYYY-MM-DD -> JS dayOfWeek (0=Sun … 5=Fri). */
+export const SCHEDULE_DAY_OVERRIDES: Record<string, number> = {
+  "2026-08-13": 1, // eight-period / Monday schedule
+  "2026-09-17": 1, // Thu followed Monday schedule
+  "2026-10-05": 4, // Mon follows Thursday schedule
+  "2026-10-06": 5, // Tue follows Friday schedule
+};
+
 export function getEffectiveDayOfWeek(date: Date): number {
   const dateStr = formatDateStr(date);
+  if (dateStr in SCHEDULE_DAY_OVERRIDES) return SCHEDULE_DAY_OVERRIDES[dateStr];
   if (isEightPeriodOverride(dateStr)) return 1;
   return getSchoolDayOfWeek(date);
 }
