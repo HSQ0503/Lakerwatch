@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  ASSEMBLY_DAY,
   formatDateStr,
   getDayType,
   getEffectiveDayOfWeek,
@@ -55,4 +56,13 @@ test("applies schedule exceptions at America/New_York date boundaries", () => {
   assert.equal(getEffectiveDayOfWeek(atMidnight), 1);
   assert.equal(formatDateStr(nextMidnight), "2026-09-18");
   assert.equal(getEffectiveDayOfWeek(nextMidnight), 5);
+});
+
+test("Oct 13 2026 uses the assembly schedule", () => {
+  const d = new Date("2026-10-13T12:00:00-04:00");
+  assert.equal(getEffectiveDayOfWeek(d), ASSEMBLY_DAY);
+  const s = getScheduleForDay(ASSEMBLY_DAY, "11/12");
+  assert.deepEqual(s.find((p) => p.name === "Assembly"), { name: "Assembly", start: "09:15", end: "10:10" });
+  assert.equal(s[s.length - 1].end, "14:50");
+  assert.equal(getEffectiveDayOfWeek(new Date("2026-10-20T12:00:00-04:00")), 2);
 });

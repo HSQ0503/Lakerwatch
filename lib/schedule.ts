@@ -166,6 +166,35 @@ const FRI_1112: Period[] = [
 
 const FRI_AFTER: Period[] = [{ name: "8th Period", start: "13:20", end: "14:50" }];
 
+// --- Assembly (all 8 periods, 35-40 min classes) ---
+
+/** Pseudo dayOfWeek used by SCHEDULE_DAY_OVERRIDES to select the assembly schedule. */
+export const ASSEMBLY_DAY = 7;
+
+const ASSEMBLY_BEFORE: Period[] = [
+  { name: "1st Period", start: "07:45", end: "08:25" },
+  { name: "2nd Period", start: "08:30", end: "09:10" },
+  { name: "Assembly", start: "09:15", end: "10:10" },
+  { name: "3rd Period", start: "10:15", end: "10:55" },
+  { name: "4th Period", start: "11:00", end: "11:40" },
+  { name: "5th Period", start: "11:45", end: "12:20" },
+];
+
+const ASSEMBLY_910: Period[] = [
+  { name: "Lunch", start: "12:20", end: "12:45" },
+  { name: "6th Period", start: "12:50", end: "13:25" },
+];
+
+const ASSEMBLY_1112: Period[] = [
+  { name: "6th Period", start: "12:25", end: "13:00" },
+  { name: "Lunch", start: "13:00", end: "13:25" },
+];
+
+const ASSEMBLY_AFTER: Period[] = [
+  { name: "7th Period", start: "13:30", end: "14:05" },
+  { name: "8th Period", start: "14:10", end: "14:50" },
+];
+
 // --- Helper Functions ---
 
 export function timeToMinutes(time: string): number {
@@ -186,6 +215,7 @@ export function getDayType(dayOfWeek: number): DayType | null {
     case 6:
       return null;
     case 1:
+    case ASSEMBLY_DAY:
       return "monday";
     case 2:
     case 4:
@@ -233,6 +263,7 @@ export const SCHEDULE_DAY_OVERRIDES: Record<string, number> = {
   "2026-09-17": 1, // Thu followed Monday schedule
   "2026-10-05": 4, // Mon follows Thursday schedule
   "2026-10-06": 5, // Tue follows Friday schedule
+  "2026-10-13": ASSEMBLY_DAY, // Tue assembly schedule
 };
 
 export function getEffectiveDayOfWeek(date: Date): number {
@@ -278,6 +309,12 @@ export function getScheduleForDay(
         ...FRI_BEFORE,
         ...(is910 ? FRI_910 : FRI_1112),
         ...FRI_AFTER,
+      ];
+    case ASSEMBLY_DAY:
+      return [
+        ...ASSEMBLY_BEFORE,
+        ...(is910 ? ASSEMBLY_910 : ASSEMBLY_1112),
+        ...ASSEMBLY_AFTER,
       ];
     default:
       return [];
