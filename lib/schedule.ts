@@ -4,7 +4,7 @@ export type Period = {
   end: string; // "HH:MM" 24hr
 };
 
-export type DayType = "monday" | "odd" | "even";
+export type DayType = "monday" | "odd" | "even" | "homecoming";
 export type LunchWave = "9/10" | "11/12";
 
 export const SCHOOL_TIME_ZONE = "America/New_York";
@@ -59,6 +59,7 @@ export const EARLY_DISMISSAL_DATES: string[] = [
   "2025-10-08",
   "2025-12-18",
   "2026-03-12",
+  "2026-10-14", // Homecoming Week: Faculty Professional Development
 ];
 
 // --- Monday (All 8 Periods) ---
@@ -195,6 +196,75 @@ const ASSEMBLY_AFTER: Period[] = [
   { name: "8th Period", start: "14:10", end: "14:50" },
 ];
 
+// --- Date-specific custom schedules (e.g. Homecoming Week) ---
+
+export type CustomSchedule = {
+  dayType: DayType;
+  "9/10": Period[];
+  "11/12": Period[];
+};
+
+function assemblyLayout(blockName: string): Pick<CustomSchedule, "9/10" | "11/12"> {
+  const before = ASSEMBLY_BEFORE.map((p) =>
+    p.name === "Assembly" ? { ...p, name: blockName } : p,
+  );
+  return {
+    "9/10": [...before, ...ASSEMBLY_910, ...ASSEMBLY_AFTER],
+    "11/12": [...before, ...ASSEMBLY_1112, ...ASSEMBLY_AFTER],
+  };
+}
+
+const HOCO_FRIDAY: Period[] = [
+  { name: "2nd Period", start: "07:45", end: "08:40" },
+  { name: "4th Period", start: "08:45", end: "09:40" },
+  { name: "Homecoming Parade", start: "09:45", end: "10:15" },
+  { name: "Pep Rally", start: "10:20", end: "10:45" },
+  { name: "HOCO Cookout Lunch", start: "10:45", end: "11:45" },
+  // Prep Talk runs inside 6th on the official sheet (6th 11:50-1:25); split since periods can't overlap.
+  { name: "6th Period", start: "11:50", end: "13:10" },
+  { name: "Prep Talk - Special Edition", start: "13:10", end: "13:25" },
+  { name: "8th Period", start: "13:30", end: "14:50" },
+];
+
+/**
+ * Full per-date schedules keyed by America/New_York YYYY-MM-DD.
+ * Each date is assigned a pseudo dayOfWeek code (>= 100) so existing
+ * getEffectiveDayOfWeek / getScheduleForDay callers work unchanged.
+ */
+export const DATE_SCHEDULE_OVERRIDES: Record<string, CustomSchedule> = {
+  "2026-10-13": { dayType: "homecoming", ...assemblyLayout("Powder Puff Football") },
+  "2026-10-14": {
+    dayType: "homecoming",
+    "9/10": [
+      { name: "2nd Period", start: "07:45", end: "09:05" },
+      { name: "Basketball Challenge", start: "09:10", end: "10:30" },
+      ...WED_910,
+      ...WED_AFTER,
+    ],
+    "11/12": [
+      { name: "2nd Period", start: "07:45", end: "09:05" },
+      { name: "Basketball Challenge", start: "09:10", end: "10:30" },
+      ...WED_1112,
+      ...WED_AFTER,
+    ],
+  },
+  "2026-10-15": { dayType: "homecoming", ...assemblyLayout("Lip Sync Battle") },
+  "2026-10-16": { dayType: "homecoming", "9/10": HOCO_FRIDAY, "11/12": HOCO_FRIDAY },
+};
+
+const CUSTOM_DAY_BASE = 100;
+const CUSTOM_DATES = Object.keys(DATE_SCHEDULE_OVERRIDES);
+
+export function getCustomDayCode(dateStr: string): number | null {
+  const i = CUSTOM_DATES.indexOf(dateStr);
+  return i === -1 ? null : CUSTOM_DAY_BASE + i;
+}
+
+function getCustomScheduleByCode(code: number): CustomSchedule | null {
+  const dateStr = CUSTOM_DATES[code - CUSTOM_DAY_BASE];
+  return dateStr ? DATE_SCHEDULE_OVERRIDES[dateStr] : null;
+}
+
 // --- Helper Functions ---
 
 export function timeToMinutes(time: string): number {
@@ -210,6 +280,8 @@ export function formatTime(time: string): string {
 }
 
 export function getDayType(dayOfWeek: number): DayType | null {
+  const custom = getCustomScheduleByCode(dayOfWeek);
+  if (custom) return custom.dayType;
   switch (dayOfWeek) {
     case 0:
     case 6:
@@ -236,6 +308,8 @@ export function getDayTypeLabel(dayType: DayType): string {
       return "Odd Day";
     case "even":
       return "Even Day";
+    case "homecoming":
+      return "Homecoming";
   }
 }
 export function formatDateStr(date: Date): string {
@@ -263,11 +337,12 @@ export const SCHEDULE_DAY_OVERRIDES: Record<string, number> = {
   "2026-09-17": 1, // Thu followed Monday schedule
   "2026-10-05": 4, // Mon follows Thursday schedule
   "2026-10-06": 5, // Tue follows Friday schedule
-  "2026-10-13": ASSEMBLY_DAY, // Tue assembly schedule
 };
 
 export function getEffectiveDayOfWeek(date: Date): number {
   const dateStr = formatDateStr(date);
+  const customCode = getCustomDayCode(dateStr);
+  if (customCode !== null) return customCode;
   if (dateStr in SCHEDULE_DAY_OVERRIDES) return SCHEDULE_DAY_OVERRIDES[dateStr];
   if (isEightPeriodOverride(dateStr)) return 1;
   return getSchoolDayOfWeek(date);
@@ -277,6 +352,8 @@ export function getScheduleForDay(
   dayOfWeek: number,
   lunchWave: LunchWave,
 ): Period[] {
+  const custom = getCustomScheduleByCode(dayOfWeek);
+  if (custom) return custom[lunchWave];
   const is910 = lunchWave === "9/10";
 
   switch (dayOfWeek) {

@@ -26,6 +26,7 @@ const BADGE_COLORS = {
   monday: "border-border bg-bg text-text dark:border-dark-border dark:bg-dark-surface dark:text-dark-text",
   odd: "border-red/20 bg-red-light text-white",
   even: "border-red/20 bg-red text-white",
+  homecoming: "border-red/20 bg-red text-white",
 };
 
 const RADIUS = 90;
