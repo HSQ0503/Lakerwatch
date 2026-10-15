@@ -1,4 +1,5 @@
 import type { SchoolEvent } from "./events";
+import { HOMECOMING_CALENDAR_EVENTS } from "./homecoming2026";
 
 export const WPS_2026_2027_SOURCE_PREFIX = "wps-hs-2026-2027";
 
@@ -327,22 +328,7 @@ export const WPS_2026_2027_EVENTS: WpsCalendarSeedEvent[] = [
     description:
       "Classes follow the regular Wednesday schedule today during Homecoming Spirit Week.",
   },
-  {
-    key: "2026-10-15-assembly-schedule",
-    date: "2026-10-15",
-    name: "Homecoming Week — Assembly Schedule",
-    type: "event",
-    description:
-      "High school follows an assembly schedule today for Homecoming Spirit Week.",
-  },
-  {
-    key: "2026-10-16-eight-period",
-    date: "2026-10-16",
-    name: "Homecoming Week — 8 Period Day",
-    type: "event",
-    description:
-      "All eight class periods meet today as Homecoming Spirit Week wraps up.",
-  },
+  ...HOMECOMING_CALENDAR_EVENTS,
   {
     key: "2026-10-13-hoco-activity",
     date: "2026-10-13",

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyHomecomingCalendarUpdates } from "@/lib/homecoming2026";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
 
@@ -7,6 +8,7 @@ export async function GET() {
     orderBy: { date: "asc" },
     select: {
       id: true,
+      sourceKey: true,
       date: true,
       name: true,
       description: true,
@@ -14,7 +16,10 @@ export async function GET() {
       endDate: true,
     },
   });
-  return NextResponse.json(events);
+  return NextResponse.json(applyHomecomingCalendarUpdates(events).map(({ sourceKey, ...event }) => {
+    void sourceKey;
+    return event;
+  }));
 }
 
 export async function POST(request: NextRequest) {

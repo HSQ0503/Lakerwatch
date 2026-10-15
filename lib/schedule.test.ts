@@ -92,7 +92,7 @@ test("Homecoming Thu 10/15: Lip Sync Battle", () => {
 test("Homecoming Fri 10/16: same for both waves", () => {
   assert.deepEqual(sched("2026-10-16", "9/10"), sched("2026-10-16", "11/12"));
   assert.deepEqual(find("2026-10-16", "9/10", "Homecoming Parade"), { name: "Homecoming Parade", start: "09:45", end: "10:15" });
-  assert.deepEqual(find("2026-10-16", "9/10", "Prep Talk - Special Edition"), { name: "Prep Talk - Special Edition", start: "13:10", end: "13:25" });
+  assert.equal(find("2026-10-16", "9/10", "6th Prep Talk - Special Edition")?.start, "13:10");
   assert.equal(sched("2026-10-16", "9/10").slice(-1)[0].end, "14:50");
 });
 

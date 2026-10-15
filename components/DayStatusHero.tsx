@@ -9,6 +9,7 @@ import {
   getEffectiveDayOfWeek,
   getSchoolDayOfWeek,
   getNextSchoolDay,
+  getSpiritWearTheme,
 } from "@/lib/schedule";
 import { getDevDate } from "@/lib/devTime";
 
@@ -79,6 +80,7 @@ export default function DayStatusHero({ isEarlyDismissal = false }: { isEarlyDis
 
   const dayTypeLabel = getDayTypeLabel(dayType);
   const badgeColor = BADGE_COLORS[dayType];
+  const spiritWearTheme = getSpiritWearTheme(now);
 
   return (
     <div className="py-4 text-center">
@@ -97,6 +99,9 @@ export default function DayStatusHero({ isEarlyDismissal = false }: { isEarlyDis
           </span>
         )}
       </div>
+      {spiritWearTheme && (
+        <p className="mt-3 text-sm text-muted dark:text-dark-muted">Spirit Wear Theme: {spiritWearTheme}</p>
+      )}
     </div>
   );
 }

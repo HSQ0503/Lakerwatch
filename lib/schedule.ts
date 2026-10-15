@@ -2,6 +2,7 @@ export type Period = {
   name: string;
   start: string; // "HH:MM" 24hr
   end: string; // "HH:MM" 24hr
+  description?: string;
 };
 
 export type DayType = "monday" | "odd" | "even" | "homecoming";
@@ -200,6 +201,7 @@ const ASSEMBLY_AFTER: Period[] = [
 
 export type CustomSchedule = {
   dayType: DayType;
+  spiritWearTheme?: string;
   "9/10": Period[];
   "11/12": Period[];
 };
@@ -221,8 +223,14 @@ const HOCO_FRIDAY: Period[] = [
   { name: "Pep Rally", start: "10:20", end: "10:45" },
   { name: "HOCO Cookout Lunch", start: "10:45", end: "11:45" },
   // Prep Talk runs inside 6th on the official sheet (6th 11:50-1:25); split since periods can't overlap.
-  { name: "6th Period", start: "11:50", end: "13:10" },
-  { name: "Prep Talk - Special Edition", start: "13:10", end: "13:25" },
+  {
+    name: "6th Period", start: "11:50", end: "13:10",
+    description: "Full 6th Period: 11:50 AM–1:25 PM, including 6th Prep Talk - Special Edition from 1:10–1:25 PM.",
+  },
+  {
+    name: "6th Prep Talk - Special Edition", start: "13:10", end: "13:25",
+    description: "Part of 6th Period (11:50 AM–1:25 PM).",
+  },
   { name: "8th Period", start: "13:30", end: "14:50" },
 ];
 
@@ -248,8 +256,8 @@ export const DATE_SCHEDULE_OVERRIDES: Record<string, CustomSchedule> = {
       ...WED_AFTER,
     ],
   },
-  "2026-10-15": { dayType: "homecoming", ...assemblyLayout("Lip Sync Battle") },
-  "2026-10-16": { dayType: "homecoming", "9/10": HOCO_FRIDAY, "11/12": HOCO_FRIDAY },
+  "2026-10-15": { dayType: "homecoming", spiritWearTheme: "Bikers vs. Surfers", ...assemblyLayout("Lip Sync Battle") },
+  "2026-10-16": { dayType: "homecoming", spiritWearTheme: "Spirit Wear", "9/10": HOCO_FRIDAY, "11/12": HOCO_FRIDAY },
 };
 
 const CUSTOM_DAY_BASE = 100;
@@ -321,6 +329,31 @@ export function formatDateStr(date: Date): string {
 export function getSchoolDayOfWeek(date: Date): number {
   const [year, month, day] = formatDateStr(date).split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+/** Resolve a weekday tab within the current school week, independent of device timezone. */
+export function getScheduleDateForWeekday(now: Date, dayOfWeek: number): Date {
+  const date = new Date(`${formatDateStr(now)}T12:00:00Z`);
+  const schoolDay = getSchoolDayOfWeek(now);
+  date.setUTCDate(date.getUTCDate() + dayOfWeek - (schoolDay === 0 ? 7 : schoolDay));
+  return date;
+}
+
+export function getSpiritWearTheme(date: Date): string | undefined {
+  return DATE_SCHEDULE_OVERRIDES[formatDateStr(date)]?.spiritWearTheme;
+}
+
+const SCHOOL_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: SCHOOL_TIME_ZONE,
+  hourCycle: "h23",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+export function getSchoolMinutes(date: Date): number {
+  const parts = SCHOOL_TIME_FORMATTER.formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return Number(values.hour) * 60 + Number(values.minute);
 }
 
 export function isNoSchoolDate(dateStr: string): boolean {
@@ -399,7 +432,7 @@ export function getScheduleForDay(
 }
 
 export function getCurrentPeriod(schedule: Period[], now: Date): Period | null {
-  const minutes = now.getHours() * 60 + now.getMinutes();
+  const minutes = getSchoolMinutes(now);
   for (const period of schedule) {
     const start = timeToMinutes(period.start);
     const end = timeToMinutes(period.end);
@@ -411,14 +444,14 @@ export function getCurrentPeriod(schedule: Period[], now: Date): Period | null {
 }
 
 export function getTimeRemaining(period: Period, now: Date): number {
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nowMinutes = getSchoolMinutes(now);
   const nowSeconds = now.getSeconds();
   const endMinutes = timeToMinutes(period.end);
   return (endMinutes - nowMinutes) * 60 - nowSeconds;
 }
 
 export function getNextPeriod(schedule: Period[], now: Date): Period | null {
-  const minutes = now.getHours() * 60 + now.getMinutes();
+  const minutes = getSchoolMinutes(now);
   for (const period of schedule) {
     if (timeToMinutes(period.start) > minutes) {
       return period;
@@ -429,7 +462,7 @@ export function getNextPeriod(schedule: Period[], now: Date): Period | null {
 
 export function getPeriodProgress(period: Period, now: Date): number {
   const nowMinutes =
-    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    getSchoolMinutes(now) + now.getSeconds() / 60;
   const start = timeToMinutes(period.start);
   const end = timeToMinutes(period.end);
   return Math.min(1, Math.max(0, (nowMinutes - start) / (end - start)));
@@ -441,14 +474,14 @@ export function getPeriodDuration(period: Period): number {
 
 export function isSchoolOver(schedule: Period[], now: Date): boolean {
   if (schedule.length === 0) return true;
-  const minutes = now.getHours() * 60 + now.getMinutes();
+  const minutes = getSchoolMinutes(now);
   const lastPeriod = schedule[schedule.length - 1];
   return minutes >= timeToMinutes(lastPeriod.end);
 }
 
 export function isBeforeSchool(schedule: Period[], now: Date): boolean {
   if (schedule.length === 0) return false;
-  const minutes = now.getHours() * 60 + now.getMinutes();
+  const minutes = getSchoolMinutes(now);
   return minutes < timeToMinutes(schedule[0].start);
 }
 
@@ -457,7 +490,7 @@ export function getSchoolStartCountdown(
   now: Date,
 ): number {
   if (schedule.length === 0) return 0;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nowMinutes = getSchoolMinutes(now);
   const nowSeconds = now.getSeconds();
   const startMinutes = timeToMinutes(schedule[0].start);
   return (startMinutes - nowMinutes) * 60 - nowSeconds;
@@ -505,7 +538,7 @@ export function getPassingTimeInfo(
   schedule: Period[],
   now: Date,
 ): { nextPeriod: Period; secondsUntil: number } | null {
-  const minutes = now.getHours() * 60 + now.getMinutes();
+  const minutes = getSchoolMinutes(now);
   const seconds = now.getSeconds();
 
   for (let i = 1; i < schedule.length; i++) {

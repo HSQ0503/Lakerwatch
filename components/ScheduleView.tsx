@@ -13,8 +13,13 @@ import {
   timeToMinutes,
   getEffectiveDayOfWeek,
   getSchoolDayOfWeek,
+  getScheduleDateForWeekday,
+  getSpiritWearTheme,
+  getSchoolMinutes,
+  formatDateStr,
   type LunchWave,
 } from "@/lib/schedule";
+import { formatSchoolDate } from "@/lib/events";
 import { getDevDate } from "@/lib/devTime";
 
 const DAY_TABS = [
@@ -38,7 +43,7 @@ function formatCountdown(seconds: number): string {
 
 function getInitialDay(): number {
   if (typeof window === "undefined") return 1;
-  const today = getSchoolDayOfWeek(new Date());
+  const today = getSchoolDayOfWeek(getDevDate(new Date()));
   return today >= 1 && today <= 5 ? today : 1;
 }
 
@@ -72,7 +77,9 @@ export default function ScheduleView() {
 
   const today = getSchoolDayOfWeek(now);
   const isToday = today === selectedDay;
-  const scheduleDay = isToday ? getEffectiveDayOfWeek(now) : selectedDay;
+  const selectedDate = getScheduleDateForWeekday(now, selectedDay);
+  const scheduleDay = getEffectiveDayOfWeek(selectedDate);
+  const spiritWearTheme = getSpiritWearTheme(selectedDate);
   const schedule = getScheduleForDay(scheduleDay, lunchWave);
   const currentPeriod = isToday ? getCurrentPeriod(schedule, now) : null;
 
@@ -115,6 +122,11 @@ export default function ScheduleView() {
         ))}
       </div>
 
+      <div className="text-center text-sm text-muted dark:text-dark-muted">
+        <p>{formatSchoolDate(formatDateStr(selectedDate), { weekday: "long", month: "long", day: "numeric", year: "numeric" })} · Eastern Time</p>
+        {spiritWearTheme && <p className="mt-1 font-semibold text-red">Spirit Wear Theme: {spiritWearTheme}</p>}
+      </div>
+
       {/* Period list */}
       <div className="space-y-3">
         {schedule.map((period) => {
@@ -125,7 +137,7 @@ export default function ScheduleView() {
           const isPast =
             isToday &&
             timeToMinutes(period.end) <=
-              now.getHours() * 60 + now.getMinutes();
+              getSchoolMinutes(now);
           const duration = getPeriodDuration(period);
 
           return (
@@ -159,6 +171,9 @@ export default function ScheduleView() {
                       {formatTime(period.start)} – {formatTime(period.end)} ·{" "}
                       {duration} min
                     </p>
+                    {period.description && (
+                      <p className="mt-1 text-sm text-muted dark:text-dark-muted">{period.description}</p>
+                    )}
                   </div>
                 </div>
                 {isCurrent && (
@@ -199,7 +214,7 @@ export default function ScheduleView() {
               d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
             />
           </svg>
-          View Official Schedule
+          View Regular Bell Schedule
         </button>
       </div>
 

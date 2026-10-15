@@ -130,6 +130,9 @@ export default function PeriodCountdown({
         <p className="mb-2 font-display text-2xl font-bold text-text dark:text-dark-text md:text-3xl">
           {currentPeriod.name}
         </p>
+        {currentPeriod.description && (
+          <p className="mb-3 text-sm text-muted dark:text-dark-muted">{currentPeriod.description}</p>
+        )}
         <div className="relative mx-auto flex h-72 w-72 items-center justify-center md:h-80 md:w-80 lg:h-96 lg:w-96">
           <svg
             className="absolute inset-0 h-full w-full -rotate-90"
