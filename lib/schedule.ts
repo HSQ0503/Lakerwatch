@@ -54,6 +54,8 @@ export const NO_SCHOOL_DATES: string[] = [
   "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20",
   // Hurricane Make-Up Day
   "2026-04-13",
+  // Veterans Day
+  "2026-11-11",
 ];
 
 export const EARLY_DISMISSAL_DATES: string[] = [
@@ -370,6 +372,8 @@ export const SCHEDULE_DAY_OVERRIDES: Record<string, number> = {
   "2026-09-17": 1, // Thu followed Monday schedule
   "2026-10-05": 4, // Mon follows Thursday schedule
   "2026-10-06": 5, // Tue follows Friday schedule
+  "2026-11-09": 5, // Mon follows Friday schedule (even)
+  "2026-11-10": 4, // Tue follows Thursday schedule (odd)
 };
 
 export function getEffectiveDayOfWeek(date: Date): number {

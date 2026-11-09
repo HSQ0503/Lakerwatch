@@ -7,6 +7,7 @@ import {
   getDayType,
   getEffectiveDayOfWeek,
   getScheduleForDay,
+  isNoSchoolDate,
 } from "./schedule";
 
 test("uses the Monday schedule only on September 17, 2026", () => {
@@ -100,4 +101,34 @@ test("Oct 20-23 are normal days", () => {
   ["2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"].forEach((d, i) => {
     assert.equal(getEffectiveDayOfWeek(at(d)), 2 + i);
   });
+});
+
+test("Nov 9-13 2026: Fri schedule Mon, Thu schedule Tue, no school Wed, normal Thu/Fri", () => {
+  const mon = at("2026-11-09");
+  const tue = at("2026-11-10");
+  const thu = at("2026-11-12");
+  const fri = at("2026-11-13");
+
+  assert.equal(getEffectiveDayOfWeek(mon), 5);
+  assert.equal(getDayType(getEffectiveDayOfWeek(mon)), "even");
+  assert.deepEqual(
+    getScheduleForDay(getEffectiveDayOfWeek(mon), "9/10"),
+    getScheduleForDay(5, "9/10"),
+  );
+
+  assert.equal(getEffectiveDayOfWeek(tue), 4);
+  assert.equal(getDayType(getEffectiveDayOfWeek(tue)), "odd");
+  assert.deepEqual(
+    getScheduleForDay(getEffectiveDayOfWeek(tue), "9/10"),
+    getScheduleForDay(4, "9/10"),
+  );
+
+  assert.equal(isNoSchoolDate("2026-11-11"), true);
+
+  assert.equal(getEffectiveDayOfWeek(thu), 4);
+  assert.equal(getDayType(getEffectiveDayOfWeek(thu)), "odd");
+  assert.equal(getEffectiveDayOfWeek(fri), 5);
+  assert.equal(getDayType(getEffectiveDayOfWeek(fri)), "even");
+  assert.equal(isNoSchoolDate("2026-11-12"), false);
+  assert.equal(isNoSchoolDate("2026-11-13"), false);
 });
