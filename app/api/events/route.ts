@@ -1,9 +1,10 @@
+import { dashboardCacheOptions } from "@/lib/dashboard-cache";
 import { NextRequest, NextResponse } from "next/server";
 import { applyHomecomingCalendarUpdates } from "@/lib/homecoming2026";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const events = await prisma.schoolEvent.findMany({
     orderBy: { date: "asc" },
     select: {
@@ -16,10 +17,11 @@ export async function GET() {
       endDate: true,
     },
   });
-  return NextResponse.json(applyHomecomingCalendarUpdates(events).map(({ sourceKey, ...event }) => {
+  const publicEvents = applyHomecomingCalendarUpdates(events).map(({ sourceKey, ...event }) => {
     void sourceKey;
     return event;
-  }));
+  });
+  return NextResponse.json(publicEvents, dashboardCacheOptions(request));
 }
 
 export async function POST(request: NextRequest) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import DayStatusHero from "@/components/DayStatusHero";
 import PeriodCountdown from "@/components/PeriodCountdown";
 import QuickGlanceCards from "@/components/QuickGlanceCards";
@@ -11,47 +11,63 @@ import type { SchoolEvent } from "@/lib/events";
 import { formatDateStr } from "@/lib/schedule";
 import { getDevDate } from "@/lib/devTime";
 
+const REFRESH_INTERVAL_MS = 60_000;
+
+async function readDashboardFeed<T>(path: string, signal: AbortSignal): Promise<T[]> {
+  const response = await fetch(path + "?view=dashboard", { signal });
+  if (!response.ok) throw new Error("Could not load " + path);
+  const data = await response.json();
+  if (!Array.isArray(data)) throw new Error("Invalid feed from " + path);
+  return data;
+}
+
 export default function Dashboard() {
   const { lunchWave } = useLunchWave();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [isEarlyDismissal, setIsEarlyDismissal] = useState(false);
-
-  const lastAnnouncementsJson = useRef("");
-
-  const poll = useCallback(() => {
-    fetch("/api/announcements")
-      .then((res) => res.json())
-      .then((data: Announcement[]) => {
-        const json = JSON.stringify(data);
-        if (json !== lastAnnouncementsJson.current) {
-          lastAnnouncementsJson.current = json;
-          setAnnouncements(data);
-        }
-      })
-      .catch(() => {});
-
-    const today = formatDateStr(getDevDate(new Date()));
-    fetch("/api/events")
-      .then((res) => res.json())
-      .then((events: SchoolEvent[]) => {
-        setIsEarlyDismissal(
-          events.some(
-            (e) =>
-              e.type === "early-dismissal" &&
-              e.date <= today &&
-              (e.endDate ?? e.date) >= today
-          )
-        );
-      })
-      .catch(() => {});
-  }, []);
+  const [events, setEvents] = useState<SchoolEvent[]>([]);
 
   useEffect(() => {
-    poll();
-    const id = setInterval(poll, 5000);
-    return () => clearInterval(id);
-  }, [poll]);
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    let nextRefresh = 0;
+    let inFlight = false;
 
+    async function refresh() {
+      clearTimeout(timer);
+      if (controller.signal.aborted || document.hidden || inFlight) return;
+
+      const remaining = nextRefresh - Date.now();
+      if (remaining > 0) {
+        timer = setTimeout(refresh, remaining);
+        return;
+      }
+
+      inFlight = true;
+      await Promise.allSettled([
+        readDashboardFeed<Announcement>("/api/announcements", controller.signal).then(setAnnouncements),
+        readDashboardFeed<SchoolEvent>("/api/events", controller.signal).then(setEvents),
+      ]);
+      inFlight = false;
+      nextRefresh = Date.now() + REFRESH_INTERVAL_MS;
+      if (!controller.signal.aborted && !document.hidden) {
+        timer = setTimeout(refresh, REFRESH_INTERVAL_MS);
+      }
+    }
+
+    void refresh();
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
+  const today = formatDateStr(getDevDate(new Date()));
+  const isEarlyDismissal = events.some(
+    (event) => event.type === "early-dismissal" &&
+      event.date <= today && (event.endDate ?? event.date) >= today
+  );
   const hasAnnouncements = announcements.length > 0;
 
   return (
@@ -85,7 +101,7 @@ export default function Dashboard() {
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted dark:text-dark-muted">
           At a Glance
         </p>
-        <QuickGlanceCards />
+        <QuickGlanceCards events={events} />
       </div>
     </div>
   );

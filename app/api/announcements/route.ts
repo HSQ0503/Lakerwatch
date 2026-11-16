@@ -1,3 +1,4 @@
+import { dashboardCacheOptions } from "@/lib/dashboard-cache";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdmin, unauthorizedResponse } from "@/lib/auth";
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     },
     orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
   });
-  return NextResponse.json(announcements);
+  return NextResponse.json(announcements, dashboardCacheOptions(request));
 }
 
 export async function POST(request: NextRequest) {
