@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import {
@@ -28,17 +28,9 @@ function readActiveTodos(): TodoItem[] {
   return [];
 }
 
-export default function QuickGlanceCards() {
+export default function QuickGlanceCards({ events }: { events: SchoolEvent[] }) {
   const mounted = useHasMounted();
   const [activeTodos] = useState(readActiveTodos);
-  const [events, setEvents] = useState<SchoolEvent[]>([]);
-
-  useEffect(() => {
-    fetch("/api/events")
-      .then((res) => res.json())
-      .then(setEvents)
-      .catch(() => {});
-  }, []);
 
   const todoCount = activeTodos.length;
   const nextTodo = activeTodos[0];
